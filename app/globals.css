@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-glow: radial-gradient(rgba(26, 77, 62, 0.12), rgba(255, 255, 255, 0));
+}
+
+body {
+  color: #14261C;
+  background-color: #FAF8F4;
+  font-feature-settings: "rlig" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF8F4;
+}
+::-webkit-scrollbar-thumb {
+  background: #D5CBBA;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B5A893;
+}
+
+/* Custom background ambient shapes */
+.bg-ambient-pattern {
+  background-image: radial-gradient(#1A4D3E 0.75px, transparent 0.75px), radial-gradient(#FAF8F4 0.75px, #FAF8F4 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+  opacity: 0.04;
+}
+
+/* Shimmer animation utility */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.shimmer-badge {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 3s infinite;
+}
+
+/* Smooth input transitions */
+input, select, button {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
