@@ -390,7 +390,7 @@ export default function RegistrationForm() {
       )}
 
       {/* Main Form Glass Card */}
-      <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-8 lg:p-9 shadow-premium-lg border border-wellness-border relative overflow-hidden">
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-8 lg:p-9 shadow-premium-lg border border-wellness-border relative overflow-hidden w-full">
         {/* Card Decorative Glow */}
         <div className="absolute top-0 right-0 w-40 h-40 bg-wellness-gold/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-40 h-40 bg-wellness-primary/10 rounded-full blur-3xl pointer-events-none" />
