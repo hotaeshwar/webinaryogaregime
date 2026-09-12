@@ -160,12 +160,13 @@ export default function RegistrationForm() {
 
       // Step 1: Create Order on Backend (if server exists) or fallback to Standard Checkout
       const cleanPhone = `${formData.countryCode}${formData.whatsappNumber.replace(/\D/g, "")}`;
+      const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
       let orderId = null;
       let orderAmount = 1900;
       let orderCurrency = "INR";
 
       try {
-        const response = await fetch("/api/create-order", {
+        const response = await fetch(`${backendBase}/api/create-order`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
