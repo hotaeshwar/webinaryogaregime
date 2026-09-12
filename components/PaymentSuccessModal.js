@@ -55,50 +55,54 @@ export default function PaymentSuccessModal({
     }
   }, []);
 
-  // Registration details summary message for Coordinator
-  const organizerNotificationMessage = `Hello,
-I have successfully registered and paid ₹1 for the Bandhas & Nauli Kriya Workshop.
+  // Registration details & confirmation ticket message for the Receiver / Organizer (+91 98769 63204)
+  const organizerNotificationMessage = `🎫 *WORKSHOP REGISTRATION TICKET & PAYMENT CONFIRMATION* ॐ
 
-REGISTRATION DETAILS
-Name: ${registrationData.fullName}
-Email: ${registrationData.email}
-WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
+Hello Coordinator,
+I have successfully registered and completed the payment of ₹1 for the Bandhas & Nauli Kriya Workshop.
 
-WORKSHOP DETAILS
-Workshop: Lock Your Energies, Unlock Your Strength
-Subtitle: Bandhas & Nauli Kriya Workshop
-Date: Saturday, 19 September
-Time: 8:00 AM
-Mode: Online (Live)
-Duration: 90 Minutes
+👤 *ATTENDEE DETAILS:*
+• Name: ${registrationData.fullName}
+• Email: ${registrationData.email}
+• WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
 
-PAYMENT DETAILS
-Amount Paid: ₹1
-Payment ID: ${paymentData.razorpay_payment_id}
-Order ID: ${paymentData.razorpay_order_id}
-Payment Status: Verified Successfully ✓
+🧘 *WORKSHOP DETAILS:*
+• Workshop: Lock Your Energies, Unlock Your Strength
+• Topic: Bandhas & Nauli Kriya Live Masterclass
+• Date: Saturday, 19 September
+• Time: 8:00 AM IST
+• Mode: Online (Live Interactive)
+• Duration: 90 Minutes
 
-Please confirm my workshop registration.
+💳 *PAYMENT VERIFICATION:*
+• Amount Paid: ₹1
+• Payment ID: ${paymentData.razorpay_payment_id}
+• Order ID: ${paymentData.razorpay_order_id}
+• Status: Verified & Confirmed ✓
+• PDF Ticket: Generated & downloaded to attendee device
+
+Please confirm my workshop reservation.
 Thank you!`;
 
-  // Attendee personal booking ticket message
-  const attendeePassMessage = `*WORKSHOP BOOKING PASS: Bandhas & Nauli Kriya* ॐ
+  // Attendee personal booking ticket pass message
+  const attendeePassMessage = `🎫 *OFFICIAL WORKSHOP ADMISSION PASS* ॐ
+*Bandhas & Nauli Kriya Masterclass*
 
 Hello ${registrationData.fullName},
-Your seat for the upcoming online masterclass has been confirmed.
+Your seat for the upcoming online masterclass has been confirmed!
 
-*DETAILS:*
-- Workshop: Lock Your Energies, Unlock Your Strength
-- Date: Saturday, 19 September at 8:00 AM IST
-- Mode: Online (Live Interactive)
-- Name: ${registrationData.fullName}
-- Email: ${registrationData.email}
-- WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
-- Amount Paid: ₹1
-- Payment ID: ${paymentData.razorpay_payment_id}
+📋 *TICKET DETAILS:*
+• Attendee: ${registrationData.fullName}
+• WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
+• Email: ${registrationData.email}
+• Workshop: Lock Your Energies, Unlock Your Strength
+• Date: Saturday, 19 September at 8:00 AM IST
+• Amount Paid: ₹1
+• Payment ID: ${paymentData.razorpay_payment_id}
+• Status: Confirmed ✓
 
-Organizer Support: +91 98769 63204
-Keep this message saved. See you in the session!`;
+📞 Organizer / Receiver Support: +91 98769 63204
+Keep this ticket message saved. See you in the session!`;
 
   // WhatsApp URLs
   const organizerWhatsAppUrl = `https://wa.me/${organizerNumber}?text=${encodeURIComponent(
@@ -109,7 +113,7 @@ Keep this message saved. See you in the session!`;
     attendeePassMessage
   )}`;
 
-  // Auto-redirect to WhatsApp
+  // Auto-redirect to WhatsApp receiver after ticket download
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => {
@@ -197,7 +201,7 @@ Keep this message saved. See you in the session!`;
           <div className="text-center space-y-1 bg-emerald-50/90 p-3.5 rounded-2xl border border-emerald-200">
             <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-center gap-1.5">
               <UserCheck className="w-4 h-4 text-emerald-600" />
-              Confirmation Ready for WhatsApp
+              Ticket Downloaded & Confirmation Ready
             </p>
             <p className="text-xs sm:text-sm font-medium text-wellness-dark">
               {countdown > 0 ? (
@@ -206,23 +210,23 @@ Keep this message saved. See you in the session!`;
                   <span className="font-extrabold text-wellness-primary font-mono text-base">
                     {countdown}s
                   </span>{" "}
-                  to send your registration details...
+                  to send confirmation ticket to receiver...
                 </>
               ) : (
-                "Opening WhatsApp with your booking details..."
+                "Opening WhatsApp with confirmation ticket for receiver..."
               )}
             </p>
           </div>
 
           {/* WhatsApp Action Buttons */}
           <div className="space-y-2.5">
-            {/* 1. Send to Coordinator / Organizer */}
+            {/* 1. Send to Coordinator / Receiver */}
             <a
               href={organizerWhatsAppUrl}
               className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all text-center"
             >
               <MessageCircle className="w-5 h-5 fill-current" />
-              <span>Send Confirmation to Coordinator (+91 98769 63204)</span>
+              <span>Send Confirmation Ticket to Receiver (+91 98769 63204)</span>
               <ExternalLink className="w-4 h-4 opacity-80" />
             </a>
 
