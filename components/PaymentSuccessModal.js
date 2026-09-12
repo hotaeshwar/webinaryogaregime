@@ -8,6 +8,8 @@ import {
   Copy,
   Check,
   ShieldCheck,
+  Send,
+  UserCheck,
 } from "lucide-react";
 
 export default function PaymentSuccessModal({
@@ -16,15 +18,49 @@ export default function PaymentSuccessModal({
   onReset,
 }) {
   const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(4);
   const [redirectAttempted, setRedirectAttempted] = useState(false);
 
-  const whatsappNumber =
+  // Organizer WhatsApp number
+  const organizerNumber =
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919569663204";
 
-  // Build the exact WhatsApp message format required
-  const formattedMessage = `Hello,
-I have successfully registered for the Bandhas & Nauli Kriya Workshop.
+  // Attendee's own phone number (cleaned of non-digits)
+  const attendeeRawPhone = `${registrationData.countryCode || "+91"}${registrationData.whatsappNumber || ""}`;
+  const attendeePhone = attendeeRawPhone.replace(/\D/g, "");
+
+  // Official Booking Confirmation Message
+  const attendeeConfirmationMessage = `*BOOKING CONFIRMED: Bandhas & Nauli Kriya Workshop* ॐ
+
+Hello ${registrationData.fullName},
+Your seat for the upcoming online masterclass has been confirmed.
+
+*REGISTRATION DETAILS*
+- Name: ${registrationData.fullName}
+- Email: ${registrationData.email}
+- WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
+
+*WORKSHOP DETAILS*
+- Workshop: Lock Your Energies, Unlock Your Strength
+- Subtitle: Bandhas & Nauli Kriya Workshop
+- Date: Saturday, 19 September
+- Time: 8:00 AM IST
+- Mode: Online (Live Interactive)
+- Duration: 90 Minutes
+
+*PAYMENT RECEIPT*
+- Amount Paid: ₹19
+- Payment ID: ${paymentData.razorpay_payment_id}
+- Order ID: ${paymentData.razorpay_order_id}
+- Status: Payment Verified Successfully ✓
+
+Please keep this confirmation handy. The live interactive session joining link will be shared prior to the masterclass.
+
+Thank you!`;
+
+  // Message for Coordinator / Organizer
+  const organizerNotificationMessage = `Hello,
+I have successfully registered and paid ₹19 for the Bandhas & Nauli Kriya Workshop.
 
 REGISTRATION DETAILS
 Name: ${registrationData.fullName}
@@ -32,34 +68,32 @@ Email: ${registrationData.email}
 WhatsApp: ${registrationData.countryCode}${registrationData.whatsappNumber}
 
 WORKSHOP DETAILS
-Workshop:
-Lock Your Energies, Unlock Your Strength
-Date:
-Saturday, 19 September
-Time:
-8:00 AM
-Mode:
-Online
-Duration:
-90 Minutes
+Workshop: Lock Your Energies, Unlock Your Strength
+Date: Saturday, 19 September
+Time: 8:00 AM
+Mode: Online
+Duration: 90 Minutes
 
 PAYMENT DETAILS
 Amount Paid: ₹19
-Payment ID:
-${paymentData.razorpay_payment_id}
-Order ID:
-${paymentData.razorpay_order_id}
-Payment Status:
-Verified Successfully
+Payment ID: ${paymentData.razorpay_payment_id}
+Order ID: ${paymentData.razorpay_order_id}
+Payment Status: Verified Successfully
 
 Please confirm my workshop registration.
 Thank you.`;
 
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    formattedMessage
+  // URL to deliver confirmation directly to the attendee's WhatsApp
+  const attendeeWhatsAppUrl = `https://wa.me/${attendeePhone || organizerNumber}?text=${encodeURIComponent(
+    attendeeConfirmationMessage
   )}`;
 
-  // Auto-redirect countdown
+  // URL to notify the organizer
+  const organizerWhatsAppUrl = `https://wa.me/${organizerNumber}?text=${encodeURIComponent(
+    organizerNotificationMessage
+  )}`;
+
+  // Auto-redirect to attendee WhatsApp
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => {
@@ -68,16 +102,12 @@ Thank you.`;
       return () => clearTimeout(timer);
     } else if (countdown === 0 && !redirectAttempted) {
       setRedirectAttempted(true);
-      window.location.href = whatsappUrl;
+      window.location.href = attendeeWhatsAppUrl;
     }
-  }, [countdown, redirectAttempted, whatsappUrl]);
-
-  const handleManualRedirect = () => {
-    window.location.href = whatsappUrl;
-  };
+  }, [countdown, redirectAttempted, attendeeWhatsAppUrl]);
 
   const handleCopyMessage = () => {
-    navigator.clipboard.writeText(formattedMessage);
+    navigator.clipboard.writeText(attendeeConfirmationMessage);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -94,10 +124,10 @@ Thank you.`;
             Verified Successfully
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold font-serif">
-            Payment Successful
+            Booking Confirmed!
           </h2>
           <p className="text-sm text-gray-200 mt-1">
-            Registration Confirmed for Bandhas & Nauli Kriya Workshop
+            Bandhas & Nauli Kriya Workshop • Saturday, 19 Sept (8:00 AM)
           </p>
         </div>
 
@@ -106,7 +136,7 @@ Thank you.`;
           {/* Summary Box */}
           <div className="bg-wellness-surface/70 rounded-2xl p-4.5 border border-wellness-border/80 space-y-3">
             <div className="flex justify-between items-center text-sm py-1 border-b border-wellness-border/50">
-              <span className="text-wellness-muted font-medium">Name:</span>
+              <span className="text-wellness-muted font-medium">Registrant:</span>
               <span className="text-wellness-dark font-bold">
                 {registrationData.fullName}
               </span>
@@ -147,53 +177,66 @@ Thank you.`;
             </div>
           </div>
 
-          {/* Redirection Notice */}
-          <div className="text-center space-y-2 bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200">
-            <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">
-              Automatic Transfer
+          {/* WhatsApp Status Alert */}
+          <div className="text-center space-y-1.5 bg-emerald-50/90 p-4 rounded-2xl border border-emerald-200">
+            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-center gap-1.5">
+              <UserCheck className="w-4 h-4" />
+              Confirmation Sent to WhatsApp
             </p>
-            <p className="text-sm font-medium text-wellness-dark">
+            <p className="text-xs sm:text-sm font-medium text-wellness-dark">
               {countdown > 0 ? (
                 <>
-                  Opening WhatsApp in{" "}
+                  Opening your WhatsApp in{" "}
                   <span className="font-extrabold text-wellness-primary font-mono text-base">
                     {countdown}s
                   </span>{" "}
-                  to send your registration confirmation...
+                  with your official booking pass...
                 </>
               ) : (
-                "Opening WhatsApp to send your registration details..."
+                "Opening WhatsApp with your booking details..."
               )}
             </p>
           </div>
 
-          {/* Primary Action Button (WhatsApp Direct) */}
+          {/* Action Buttons */}
           <div className="space-y-3">
+            {/* Primary: Get Confirmation in Attendee's WhatsApp */}
             <a
-              href={whatsappUrl}
-              onClick={handleManualRedirect}
+              href={attendeeWhatsAppUrl}
               className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all text-center"
             >
               <MessageCircle className="w-5 h-5 fill-current" />
-              <span>Continue to WhatsApp</span>
+              <span>Get Confirmation on My WhatsApp</span>
               <ExternalLink className="w-4 h-4 opacity-80" />
             </a>
 
-            <div className="flex items-center gap-2">
+            {/* Secondary: Notify Organizer */}
+            <a
+              href={organizerWhatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark text-xs font-semibold border border-wellness-border transition-colors text-center"
+            >
+              <Send className="w-3.5 h-3.5 text-wellness-primary" />
+              <span>Notify Workshop Coordinator (+91 95696 63204)</span>
+            </a>
+
+            {/* Utility Actions */}
+            <div className="flex items-center gap-2 pt-1">
               <button
                 type="button"
                 onClick={handleCopyMessage}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-wellness-surface hover:bg-wellness-border/50 text-wellness-dark text-xs font-semibold border border-wellness-border transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-wellness-dark text-xs font-semibold border border-gray-200 transition-colors"
               >
                 {copied ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Details Copied!</span>
+                    <span>Booking Pass Copied!</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5 text-wellness-muted" />
-                    <span>Copy Message</span>
+                    <span>Copy Booking Pass</span>
                   </>
                 )}
               </button>
@@ -208,10 +251,10 @@ Thank you.`;
             </div>
           </div>
 
-          {/* Footer note */}
+          {/* Trust Footer */}
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-wellness-muted font-medium pt-1">
             <ShieldCheck className="w-3.5 h-3.5 text-wellness-primary" />
-            <span>Registration strictly verified via Razorpay HMAC authentication</span>
+            <span>Registration verified via Razorpay HMAC authentication</span>
           </div>
         </div>
       </div>
