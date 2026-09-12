@@ -26,9 +26,9 @@ export default function PaymentSuccessModal({
   const [pdfDownloaded, setPdfDownloaded] = useState(false);
   const pdfTriggeredRef = useRef(false);
 
-  // Organizer WhatsApp number (919569663204)
+  // Organizer WhatsApp number (919876963204)
   const organizerNumber =
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919569663204";
+    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919876963204";
 
   // Attendee phone number
   const attendeeRawPhone = `${registrationData.countryCode || "+91"}${registrationData.whatsappNumber || ""}`;
@@ -57,7 +57,7 @@ export default function PaymentSuccessModal({
 
   // Registration details summary message for Coordinator
   const organizerNotificationMessage = `Hello,
-I have successfully registered and paid ₹19 for the Bandhas & Nauli Kriya Workshop.
+I have successfully registered and paid ₹1 for the Bandhas & Nauli Kriya Workshop.
 
 REGISTRATION DETAILS
 Name: ${registrationData.fullName}
@@ -73,7 +73,7 @@ Mode: Online (Live)
 Duration: 90 Minutes
 
 PAYMENT DETAILS
-Amount Paid: ₹19
+Amount Paid: ₹1
 Payment ID: ${paymentData.razorpay_payment_id}
 Order ID: ${paymentData.razorpay_order_id}
 Payment Status: Verified Successfully ✓
@@ -94,10 +94,10 @@ Your seat for the upcoming online masterclass has been confirmed.
 - Name: ${registrationData.fullName}
 - Email: ${registrationData.email}
 - WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
-- Amount Paid: ₹19
+- Amount Paid: ₹1
 - Payment ID: ${paymentData.razorpay_payment_id}
 
-Organizer Support: +91 95696 63204
+Organizer Support: +91 98769 63204
 Keep this message saved. See you in the session!`;
 
   // WhatsApp URLs
@@ -172,7 +172,7 @@ Keep this message saved. See you in the session!`;
             <div className="flex justify-between items-center py-0.5 border-b border-wellness-border/50">
               <span className="text-wellness-muted font-medium">Amount Paid:</span>
               <span className="text-wellness-primary font-extrabold text-sm sm:text-base">
-                ₹19
+                ₹1
               </span>
             </div>
             <div className="flex justify-between items-start py-0.5 border-b border-wellness-border/50 text-[11px] sm:text-xs">
@@ -222,7 +222,7 @@ Keep this message saved. See you in the session!`;
               className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all text-center"
             >
               <MessageCircle className="w-5 h-5 fill-current" />
-              <span>Send Confirmation to Coordinator (+91 95696 63204)</span>
+              <span>Send Confirmation to Coordinator (+91 98769 63204)</span>
               <ExternalLink className="w-4 h-4 opacity-80" />
             </a>
 

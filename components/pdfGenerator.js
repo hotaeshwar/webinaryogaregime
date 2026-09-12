@@ -48,7 +48,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
       phone: `${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}`.trim(),
       paymentId: paymentData.razorpay_payment_id || "N/A",
       orderId: paymentData.razorpay_order_id || "N/A",
-      amountPaid: "Rs. 19",
+      amountPaid: "Rs. 1",
       workshop: "Bandhas & Nauli Kriya Workshop",
       date: "Saturday, 19 September",
       time: "8:00 AM IST",
@@ -219,7 +219,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
     doc.text("Payment Amount:", payBoxX + 6, payBoxY + 10);
     doc.setFontSize(13);
     doc.setTextColor(...goldAccent);
-    doc.text("Rs. 19 (INR)", payBoxX + 50, payBoxY + 10);
+    doc.text("Rs. 1 (INR)", payBoxX + 50, payBoxY + 10);
 
     doc.setFontSize(9.5);
     doc.setTextColor(...textDark);
@@ -261,7 +261,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
       "1. The live interactive session joining link will be shared to your WhatsApp & Email prior to the masterclass.",
       "2. Please join with an empty stomach (or at least 3-4 hours after a meal) for optimal Bandha and Nauli practice.",
       "3. Wear comfortable yoga attire and keep a yoga mat, water, and an open space ready.",
-      "4. Helpline & Support: WhatsApp +91 95696 63204 for any coordination or questions.",
+      "4. Helpline & Support: WhatsApp +91 98769 63204 for any coordination or questions.",
     ];
 
     let gY = noteY + 13;
