@@ -39,6 +39,8 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          RAZORPAY_KEY_ID: rzp_live_Tb4Km1evAI6DKr
+          RAZORPAY_KEY_SECRET: siEna8s1RRfTcpIzC0PfEEQW
           NEXT_PUBLIC_RAZORPAY_KEY_ID: rzp_live_Tb4Km1evAI6DKr
           NEXT_PUBLIC_WHATSAPP_NUMBER: 919569663204
 
