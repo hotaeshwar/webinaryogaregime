@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   CheckCircle2,
   ExternalLink,
@@ -10,8 +8,11 @@ import {
   ShieldCheck,
   Send,
   UserCheck,
-  PhoneCall,
+  Download,
+  FileText,
+  Save,
 } from "lucide-react";
+import { generateAndSaveWorkshopPDF } from "./pdfGenerator";
 
 export default function PaymentSuccessModal({
   registrationData,
@@ -19,8 +20,11 @@ export default function PaymentSuccessModal({
   onReset,
 }) {
   const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(4);
   const [redirectAttempted, setRedirectAttempted] = useState(false);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [pdfDownloaded, setPdfDownloaded] = useState(false);
+  const pdfTriggeredRef = useRef(false);
 
   // Organizer WhatsApp number (919569663204)
   const organizerNumber =
@@ -29,6 +33,27 @@ export default function PaymentSuccessModal({
   // Attendee phone number
   const attendeeRawPhone = `${registrationData.countryCode || "+91"}${registrationData.whatsappNumber || ""}`;
   const attendeePhone = attendeeRawPhone.replace(/\D/g, "");
+
+  // Handler to manually download / regenerate PDF
+  const handleDownloadPDF = async () => {
+    setPdfGenerating(true);
+    try {
+      await generateAndSaveWorkshopPDF(registrationData, paymentData);
+      setPdfDownloaded(true);
+    } catch (err) {
+      console.error("Manual PDF download failed:", err);
+    } finally {
+      setPdfGenerating(false);
+    }
+  };
+
+  // Auto-generate & save PDF to localStorage + device upon component mount
+  useEffect(() => {
+    if (!pdfTriggeredRef.current) {
+      pdfTriggeredRef.current = true;
+      handleDownloadPDF();
+    }
+  }, []);
 
   // Registration details summary message for Coordinator
   const organizerNotificationMessage = `Hello,
@@ -209,6 +234,38 @@ Keep this message saved. See you in the session!`;
               <Send className="w-3.5 h-3.5 text-wellness-primary" />
               <span>Save Pass to My WhatsApp ({registrationData.countryCode} {registrationData.whatsappNumber})</span>
             </a>
+
+            {/* 3. Automatic PDF Ticket Pass & Local Storage Record */}
+            <div className="bg-wellness-cream/80 p-3.5 rounded-2xl border border-wellness-gold/40 space-y-2 text-left">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-wellness-dark flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-wellness-gold" />
+                  Official PDF Admission Pass
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300/60 flex items-center gap-1">
+                  <Check className="w-3 h-3" />
+                  Saved locally
+                </span>
+              </div>
+              <p className="text-[11px] text-wellness-muted leading-relaxed">
+                A branded PDF receipt with logo, payment ID & workshop guidelines has been generated and saved to your device.
+              </p>
+              <button
+                type="button"
+                onClick={handleDownloadPDF}
+                disabled={pdfGenerating}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition-all"
+              >
+                <Download className="w-4 h-4" />
+                <span>
+                  {pdfGenerating
+                    ? "Generating PDF Ticket..."
+                    : pdfDownloaded
+                    ? "Download PDF Ticket Again"
+                    : "Download PDF Admission Pass"}
+                </span>
+              </button>
+            </div>
 
             {/* Utility buttons */}
             <div className="flex items-center gap-2 pt-1">

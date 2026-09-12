@@ -11,9 +11,9 @@ export default function PaymentProgress({ stage = 0 }) {
 
   const stages = [
     { label: "Details Validated", percent: 0 },
-    { label: "Creating Order", percent: 25 },
+    { label: "Preparing Checkout", percent: 25 },
     { label: "Checkout Open", percent: 50 },
-    { label: "Verifying Payment", percent: 75 },
+    { label: "Processing Payment", percent: 75 },
     { label: "Confirmed", percent: 100 },
   ];
 
@@ -48,9 +48,9 @@ export default function PaymentProgress({ stage = 0 }) {
       <div className="mt-2 text-center">
         <p className="text-xs font-medium text-wellness-muted">
           {stage === 0 && "Ready to proceed with registration & payment"}
-          {stage === 1 && "Creating secure ₹19 Razorpay order..."}
+          {stage === 1 && "Opening secure Razorpay checkout..."}
           {stage === 2 && "Razorpay checkout modal is active..."}
-          {stage === 3 && "Verifying HMAC-SHA256 signature on server..."}
+          {stage === 3 && "Processing payment confirmation..."}
           {stage === 4 && "✓ Payment verified & registration confirmed!"}
         </p>
       </div>

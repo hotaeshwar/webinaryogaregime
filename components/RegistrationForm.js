@@ -154,58 +154,36 @@ export default function RegistrationForm() {
     }
 
     try {
-      setPaymentStatus("creating_order");
-      setProgressStage(1); // 25% Creating order
-      showToast("Preparing secure checkout...", "info");
-
-      // Step 1: Create Order on Backend (if server exists) or fallback to Standard Checkout
-      const cleanPhone = `${formData.countryCode}${formData.whatsappNumber.replace(/\D/g, "")}`;
-      const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
-      let orderId = null;
-      let orderAmount = 1900;
-      let orderCurrency = "INR";
-
-      try {
-        const response = await fetch(`${backendBase}/api/create-order`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: formData.fullName.trim(),
-            email: formData.email.trim(),
-            phone: cleanPhone,
-          }),
-        });
-
-        if (response.ok) {
-          const orderData = await response.json();
-          if (orderData.success && orderData.order_id) {
-            orderId = orderData.order_id;
-            orderAmount = orderData.amount;
-            orderCurrency = orderData.currency || "INR";
-          }
-        }
-      } catch (e) {
-        console.warn("Backend order creation unavailable (running static export), using Standard Checkout mode:", e);
-      }
-
-      setProgressStage(2); // 50% Checkout opened
       setPaymentStatus("checkout_open");
+      setProgressStage(2); // 50% Checkout opened
+      showToast("Opening secure Razorpay checkout...", "info");
 
+      const cleanPhone = `${formData.countryCode}${formData.whatsappNumber.replace(/\D/g, "")}`;
       const razorpayKey =
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_Tb4Km1evAI6DKr";
 
-      // Step 2: Open Razorpay Standard Web Checkout Modal
+      // Fixed ₹19 (1900 paise) client-side
+      const orderAmount = 1900;
+      const orderCurrency = "INR";
+
+      // Open Razorpay Standard Web Checkout Modal
       const options = {
         key: razorpayKey,
         amount: orderAmount,
         currency: orderCurrency,
         name: "Bandhas & Nauli Kriya Workshop",
-        description: "Workshop Registration",
+        description: "Workshop Registration (₹19)",
         image: "/logo1.png",
         prefill: {
           name: formData.fullName.trim(),
           email: formData.email.trim(),
           contact: cleanPhone,
+        },
+        notes: {
+          workshop: "Bandhas & Nauli Kriya Workshop",
+          attendee_name: formData.fullName.trim(),
+          attendee_email: formData.email.trim(),
+          attendee_phone: cleanPhone,
         },
         theme: {
           color: "#1A4D3E",
@@ -220,41 +198,17 @@ export default function RegistrationForm() {
             );
           },
         },
-        handler: async function (razorpayResponse) {
-          // As long as Razorpay returned a valid payment ID, payment has been processed
+        handler: function (razorpayResponse) {
           const paymentId = razorpayResponse?.razorpay_payment_id;
-          const returnedOrderId = razorpayResponse?.razorpay_order_id || orderId || "order_direct";
-          const signature = razorpayResponse?.razorpay_signature;
+          const returnedOrderId =
+            razorpayResponse?.razorpay_order_id ||
+            `DIRECT_${Date.now().toString(36).toUpperCase()}`;
 
           if (!paymentId) {
             setPaymentStatus("failed");
             setProgressStage(0);
             showToast("Payment was not completed. Please try again.", "error");
             return;
-          }
-
-          // Immediately confirm payment on the UI
-          setProgressStage(3); // 75% Verifying payment
-          setPaymentStatus("verifying");
-          showToast("Payment received! Finalizing registration...", "info");
-
-          // Try server-side verification and automated WhatsApp dispatch on backend
-          try {
-            const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
-            await fetch(`${backendBase}/api/verify-payment`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_payment_id: paymentId,
-                razorpay_order_id: returnedOrderId,
-                razorpay_signature: signature || "direct_pay_verified",
-                name: formData.fullName.trim(),
-                email: formData.email.trim(),
-                phone: cleanPhone,
-              }),
-            });
-          } catch (apiErr) {
-            console.warn("Server-side verification bypassed:", apiErr);
           }
 
           // Mark payment 100% verified & confirmed
@@ -267,10 +221,6 @@ export default function RegistrationForm() {
           showToast("Payment Successful! Booking Confirmed ✓", "success");
         },
       };
-
-      if (orderId) {
-        options.order_id = orderId;
-      }
 
       const rzp = new window.Razorpay(options);
 
@@ -291,7 +241,7 @@ export default function RegistrationForm() {
       setProgressStage(0);
       showToast(
         err.message ||
-          "Network error. Please check your internet connection and try again.",
+          "Could not open payment gateway. Please try again.",
         "error"
       );
     }
@@ -306,25 +256,11 @@ export default function RegistrationForm() {
   // Button text and state
   const getButtonContent = () => {
     switch (paymentStatus) {
-      case "creating_order":
-        return (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Preparing Payment...</span>
-          </>
-        );
       case "checkout_open":
         return (
           <>
             <Sparkles className="w-5 h-5 text-wellness-goldLight" />
             <span>Complete Payment in Razorpay</span>
-          </>
-        );
-      case "verifying":
-        return (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            <span>Verifying Payment...</span>
           </>
         );
       case "success":
@@ -351,10 +287,7 @@ export default function RegistrationForm() {
     }
   };
 
-  const isProcessing =
-    paymentStatus === "creating_order" ||
-    paymentStatus === "checkout_open" ||
-    paymentStatus === "verifying";
+  const isProcessing = paymentStatus === "checkout_open";
 
   return (
     <div className="relative">
