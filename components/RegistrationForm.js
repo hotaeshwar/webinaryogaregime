@@ -237,19 +237,23 @@ export default function RegistrationForm() {
           setPaymentStatus("verifying");
           showToast("Payment received! Finalizing registration...", "info");
 
-          // Try server-side verification if backend is active
+          // Try server-side verification and automated WhatsApp dispatch on backend
           try {
-            await fetch("/api/verify-payment", {
+            const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+            await fetch(`${backendBase}/api/verify-payment`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 razorpay_payment_id: paymentId,
                 razorpay_order_id: returnedOrderId,
                 razorpay_signature: signature || "direct_pay_verified",
+                name: formData.fullName.trim(),
+                email: formData.email.trim(),
+                phone: cleanPhone,
               }),
             });
           } catch (apiErr) {
-            console.warn("Server-side verification bypassed (static host mode):", apiErr);
+            console.warn("Server-side verification bypassed:", apiErr);
           }
 
           // Mark payment 100% verified & confirmed
