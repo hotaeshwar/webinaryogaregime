@@ -3,9 +3,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   signInAdmin,
+  signUpAdmin,
   signOutAdmin,
   getCurrentAdminUser,
+  validateAdminSession,
   sendAdminPasswordReset,
+  firebaseConfig,
 } from "@/lib/firebase";
 import { subscribeToTransactions, getTransactionsList } from "@/lib/transactionService";
 import {
@@ -33,8 +36,10 @@ import {
   X,
   FileText,
   User,
+  UserPlus,
   ArrowUpDown,
   Filter,
+  Flame,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -43,11 +48,14 @@ export default function AdminPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Login form state
+  // Login & Register form state
+  const [authMode, setAuthMode] = useState("login"); // 'login', 'register', 'forgot'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [loginSuccess, setLoginSuccess] = useState("");
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
 
@@ -66,11 +74,35 @@ export default function AdminPage() {
   const [selectedTx, setSelectedTx] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
-  // 1. Check existing session on mount
+  // 1. Check & validate existing session with Firebase Auth on mount
   useEffect(() => {
-    const user = getCurrentAdminUser();
-    setCurrentUser(user);
-    setAuthLoading(false);
+    let isMounted = true;
+    async function checkAuth() {
+      // First check local cache for fast UI paint
+      const cached = getCurrentAdminUser();
+      if (cached && isMounted) {
+        setCurrentUser(cached);
+      }
+      
+      // Then validate live against Firebase Authentication
+      try {
+        const validated = await validateAdminSession();
+        if (isMounted) {
+          setCurrentUser(validated);
+        }
+      } catch (e) {
+        console.warn("Session validation check:", e);
+      } finally {
+        if (isMounted) {
+          setAuthLoading(false);
+        }
+      }
+    }
+
+    checkAuth();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // 2. Subscribe to transactions when logged in
@@ -88,7 +120,7 @@ export default function AdminPage() {
         setDataLoading(false);
       },
       (err) => {
-        console.warn("Real-time listener error:", err);
+        console.warn("Real-time listener fallback:", err);
         getTransactionsList().then((list) => {
           setTransactions(list);
           setDataLoading(false);
@@ -99,36 +131,53 @@ export default function AdminPage() {
     return () => unsubscribe && unsubscribe();
   }, [currentUser]);
 
-  // Handle Login via Firebase Auth REST API
-  const handleLogin = async (e) => {
+  // Handle Form Submit (Sign In or Register in Firebase)
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
     setLoginError("");
+    setLoginSuccess("");
     setLoginSubmitting(true);
 
     try {
-      const user = await signInAdmin(email.trim(), password);
-      setCurrentUser(user);
+      if (authMode === "register") {
+        if (password.length < 6) {
+          throw new Error("Password must be at least 6 characters long.");
+        }
+        if (password !== confirmPassword) {
+          throw new Error("Passwords do not match. Please re-type your password.");
+        }
+        const user = await signUpAdmin(email.trim(), password);
+        setCurrentUser(user);
+      } else if (authMode === "login") {
+        const user = await signInAdmin(email.trim(), password);
+        setCurrentUser(user);
+      }
     } catch (err) {
-      console.error("Login Error:", err);
-      setLoginError(err.message || "Failed to sign in. Please verify credentials.");
+      console.error("Authentication Error:", err);
+      setLoginError(err.message || "Authentication failed. Please check credentials.");
     } finally {
       setLoginSubmitting(false);
     }
   };
 
-  // Handle Password Reset
-  const handleForgotPassword = async () => {
+  // Handle Password Reset via Firebase
+  const handleForgotPassword = async (e) => {
+    if (e) e.preventDefault();
     if (!email) {
       setLoginError("Please enter your admin email address first.");
       return;
     }
+    setLoginSubmitting(true);
+    setLoginError("");
     try {
       await sendAdminPasswordReset(email.trim());
       setResetSent(true);
-      setLoginError("");
-      setTimeout(() => setResetSent(false), 6000);
+      setLoginSuccess(`Password reset email sent to ${email.trim()}! Please check your inbox.`);
+      setTimeout(() => setResetSent(false), 8000);
     } catch (err) {
       setLoginError(err.message || "Could not send password reset email.");
+    } finally {
+      setLoginSubmitting(false);
     }
   };
 
@@ -136,6 +185,11 @@ export default function AdminPage() {
   const handleLogout = () => {
     signOutAdmin();
     setCurrentUser(null);
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setLoginError("");
+    setLoginSuccess("");
   };
 
   // Manual Refresh
@@ -153,9 +207,11 @@ export default function AdminPage() {
 
   // Copy helper
   const handleCopy = (text, id) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
   };
 
   // Filtered & Sorted Transactions
@@ -288,7 +344,7 @@ export default function AdminPage() {
         <div className="text-center space-y-3">
           <div className="w-12 h-12 border-4 border-wellness-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-semibold text-wellness-dark">
-            Loading Admin Portal...
+            Connecting to Firebase Authentication...
           </p>
         </div>
       </div>
@@ -296,7 +352,7 @@ export default function AdminPage() {
   }
 
   // -------------------------------------------------------------
-  // 1. LOGIN SCREEN (If not authenticated)
+  // 1. LOGIN & AUTHENTICATION SCREEN (Direct Firebase Validation)
   // -------------------------------------------------------------
   if (!currentUser) {
     return (
@@ -310,27 +366,89 @@ export default function AdminPage() {
           {/* Header */}
           <div className="bg-gradient-to-r from-wellness-primaryDark via-wellness-primary to-wellness-primaryLight p-6 text-center text-white">
             <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center mx-auto mb-3 border border-white/20">
-              <Lock className="w-6 h-6 text-emerald-200" />
+              <ShieldCheck className="w-6 h-6 text-emerald-200" />
             </div>
             <h1 className="text-2xl font-bold font-serif">Admin Portal</h1>
             <p className="text-xs text-gray-200 mt-1">
-              Bandhas & Nauli Kriya Workshop Transactions
+              Bandhas & Nauli Kriya Workshop Dashboard
             </p>
+            <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/40 text-[10px] text-emerald-200 border border-emerald-400/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Firebase Auth Project: {firebaseConfig.projectId}</span>
+            </div>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleLogin} className="p-6 sm:p-8 space-y-5">
+          {/* Mode Switch Tabs */}
+          <div className="flex border-b border-wellness-border bg-wellness-surface/60">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode("login");
+                setLoginError("");
+                setLoginSuccess("");
+              }}
+              className={`flex-1 py-3 text-xs font-bold text-center transition-all ${
+                authMode === "login"
+                  ? "bg-white text-wellness-primary border-b-2 border-wellness-primary"
+                  : "text-wellness-muted hover:text-wellness-dark"
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode("register");
+                setLoginError("");
+                setLoginSuccess("");
+              }}
+              className={`flex-1 py-3 text-xs font-bold text-center transition-all ${
+                authMode === "register"
+                  ? "bg-white text-wellness-primary border-b-2 border-wellness-primary"
+                  : "text-wellness-muted hover:text-wellness-dark"
+              }`}
+            >
+              Register Admin
+            </button>
+          </div>
+
+          {/* Auth Form */}
+          <form onSubmit={authMode === "forgot" ? handleForgotPassword : handleAuthSubmit} className="p-6 sm:p-8 space-y-4">
             {loginError && (
               <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-start gap-2 animate-fade-in">
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{loginError}</span>
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+                <div className="space-y-1">
+                  <span>{loginError}</span>
+                  {authMode === "login" && (
+                    <p className="text-[11px] text-red-600 font-normal">
+                      Need to create this admin account in Firebase? Switch to{" "}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode("register");
+                          setLoginError("");
+                        }}
+                        className="underline font-bold hover:text-red-900 cursor-pointer"
+                      >
+                        Register Admin
+                      </button>
+                    </p>
+                  )}
+                </div>
               </div>
             )}
 
-            {resetSent && (
+            {loginSuccess && (
               <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium flex items-start gap-2 animate-fade-in">
                 <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-                <span>Password reset link sent to your email. Check your inbox!</span>
+                <span>{loginSuccess}</span>
+              </div>
+            )}
+
+            {authMode === "register" && (
+              <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-800 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>Enter your email and a password (min 6 chars) to create and validate your Admin account with Firebase.</span>
               </div>
             )}
 
@@ -348,59 +466,89 @@ export default function AdminPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder="admin@example.com"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-wellness-border bg-wellness-surface/50 text-wellness-dark text-sm focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 focus:border-wellness-primary transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/50 text-wellness-dark text-sm focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 focus:border-wellness-primary transition-all"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="block text-xs font-bold text-wellness-dark uppercase tracking-wider">
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-xs text-wellness-primary hover:underline font-semibold"
-                >
-                  Forgot?
-                </button>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-wellness-muted">
-                  <Lock className="w-4 h-4" />
+            {authMode !== "forgot" && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-bold text-wellness-dark uppercase tracking-wider">
+                    Password
+                  </label>
+                  {authMode === "login" && (
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-xs text-wellness-primary hover:underline font-semibold"
+                    >
+                      Forgot?
+                    </button>
+                  )}
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-3 rounded-xl border border-wellness-border bg-wellness-surface/50 text-wellness-dark text-sm focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 focus:border-wellness-primary transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-wellness-muted hover:text-wellness-dark"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-wellness-muted">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/50 text-wellness-dark text-sm focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 focus:border-wellness-primary transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-wellness-muted hover:text-wellness-dark"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {authMode === "register" && (
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-wellness-dark uppercase tracking-wider">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-wellness-muted">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/50 text-wellness-dark text-sm focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 focus:border-wellness-primary transition-all"
+                  />
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={loginSubmitting}
-              className="w-full py-3.5 px-4 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+              className="w-full py-3 px-4 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
             >
               {loginSubmitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Signing In with Firebase...</span>
+                  <span>Validating with Firebase...</span>
+                </>
+              ) : authMode === "register" ? (
+                <>
+                  <span>Create Admin & Log In</span>
+                  <UserPlus className="w-4 h-4" />
                 </>
               ) : (
                 <>
-                  <span>Sign In to Dashboard</span>
+                  <span>Sign In & Authenticate</span>
                   <Lock className="w-4 h-4" />
                 </>
               )}
@@ -411,7 +559,7 @@ export default function AdminPage() {
                 href="/"
                 className="text-xs text-wellness-muted hover:text-wellness-primary transition-colors inline-flex items-center gap-1 font-medium"
               >
-                ← Back to Registration Page
+                ← Back to Workshop Registration
               </Link>
             </div>
           </form>
@@ -439,8 +587,8 @@ export default function AdminPage() {
                 <span className="text-base sm:text-lg font-bold text-wellness-dark font-serif leading-tight">
                   Admin Dashboard
                 </span>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-wellness-gold/20 text-wellness-goldDark text-[11px] font-bold uppercase tracking-wider">
-                  Live Firestore
+                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider border border-emerald-200">
+                  Firebase Validated
                 </span>
               </div>
               <p className="text-xs text-wellness-muted hidden sm:block">
@@ -464,7 +612,7 @@ export default function AdminPage() {
               onClick={handleRefresh}
               disabled={refreshing}
               title="Refresh Data"
-              className="p-2 rounded-xl border border-wellness-border bg-white hover:bg-wellness-surface text-wellness-dark transition-colors"
+              className="p-2 rounded-xl border border-wellness-border bg-white hover:bg-wellness-surface text-wellness-dark transition-colors cursor-pointer"
             >
               <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-wellness-primary" : ""}`} />
             </button>
@@ -478,7 +626,7 @@ export default function AdminPage() {
 
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold border border-red-200 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold border border-red-200 transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Sign Out</span>
@@ -502,7 +650,7 @@ export default function AdminPage() {
               </h3>
               <p className="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
-                Verified & Confirmed
+                Verified in Firestore
               </p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
@@ -614,7 +762,7 @@ export default function AdminPage() {
 
             <button
               onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-              className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/60 hover:bg-wellness-border/50 text-xs font-semibold text-wellness-dark transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/60 hover:bg-wellness-border/50 text-xs font-semibold text-wellness-dark transition-colors cursor-pointer"
               title="Toggle Sort Order"
             >
               <ArrowUpDown className="w-3.5 h-3.5 text-wellness-primary" />
@@ -735,7 +883,7 @@ export default function AdminPage() {
                             </span>
                             <button
                               onClick={() => handleCopy(tx.paymentId, tx.id)}
-                              className="text-wellness-muted hover:text-wellness-primary p-1"
+                              className="text-wellness-muted hover:text-wellness-primary p-1 cursor-pointer"
                               title="Copy Payment ID"
                             >
                               {copiedId === tx.id ? (
@@ -768,7 +916,7 @@ export default function AdminPage() {
                             {/* View Full Modal */}
                             <button
                               onClick={() => setSelectedTx(tx)}
-                              className="px-2.5 py-1.5 rounded-lg bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark border border-wellness-border text-[11px] font-semibold transition-colors"
+                              className="px-2.5 py-1.5 rounded-lg bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark border border-wellness-border text-[11px] font-semibold transition-colors cursor-pointer"
                             >
                               Details
                             </button>
@@ -802,7 +950,7 @@ export default function AdminPage() {
               </div>
               <button
                 onClick={() => setSelectedTx(null)}
-                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -874,7 +1022,7 @@ export default function AdminPage() {
 
                 <button
                   onClick={() => setSelectedTx(null)}
-                  className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition-colors"
+                  className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition-colors cursor-pointer"
                 >
                   Close
                 </button>
