@@ -60,8 +60,8 @@ export default function PaymentSuccessModal({
   // Registration details & confirmation ticket message for the Receiver / Organizer (+91 98769 63204)
   const organizerNotificationMessage = `🎫 *WORKSHOP REGISTRATION TICKET & PAYMENT CONFIRMATION* ॐ
 
-Hello Coordinator,
-I have successfully registered and completed the payment of ₹1 for the Bandhas & Nauli Kriya Workshop.
+Hello ${registrationData.fullName},
+You have successfully registered and completed the payment of ₹1 for the Bandhas & Nauli Kriya Workshop.
 
 👤 *ATTENDEE DETAILS:*
 • Name: ${registrationData.fullName}
@@ -83,15 +83,15 @@ I have successfully registered and completed the payment of ₹1 for the Bandhas
 • Status: Verified & Confirmed ✓
 • PDF Ticket: Generated & downloaded to attendee device
 
-Please confirm my workshop reservation.
-Thank you!`;
+Organizer Support: +91 98769 63204
+Keep this ticket message saved. See you in the session!`;
 
   // Attendee personal booking ticket pass message
   const attendeePassMessage = `🎫 *OFFICIAL WORKSHOP ADMISSION PASS* ॐ
 *Bandhas & Nauli Kriya Masterclass*
 
 Hello ${registrationData.fullName},
-Your seat for the upcoming online masterclass has been confirmed!
+You have successfully registered and completed the payment of ₹1 for the Bandhas & Nauli Kriya Workshop.
 
 📋 *TICKET DETAILS:*
 • Attendee: ${registrationData.fullName}
