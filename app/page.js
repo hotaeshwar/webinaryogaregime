@@ -146,6 +146,13 @@ export default function Home() {
               <HelpCircle className="w-3.5 h-3.5" />
               Questions? WhatsApp +91 98769 63204
             </span>
+            <span className="text-wellness-border">•</span>
+            <a
+              href="/admin"
+              className="text-wellness-muted/80 hover:text-wellness-primary font-medium transition-colors"
+            >
+              Admin Portal
+            </a>
           </div>
         </div>
       </footer>

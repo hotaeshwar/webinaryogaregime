@@ -43,6 +43,12 @@ jobs:
           RAZORPAY_KEY_SECRET: siEna8s1RRfTcpIzC0PfEEQW
           NEXT_PUBLIC_RAZORPAY_KEY_ID: rzp_live_Tb4Km1evAI6DKr
           NEXT_PUBLIC_WHATSAPP_NUMBER: 919876963204
+          NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyB2rnsnQJMmbcNi8qI9AvdLweMAqIyOtXQ
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: form-6d0cf.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: form-6d0cf
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: form-6d0cf.firebasestorage.app
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: 154166329670
+          NEXT_PUBLIC_FIREBASE_APP_ID: 1:154166329670:web:082cb658835da5b0eaa547
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

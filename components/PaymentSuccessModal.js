@@ -13,6 +13,7 @@ import {
   Save,
 } from "lucide-react";
 import { generateAndSaveWorkshopPDF } from "./pdfGenerator";
+import { saveTransaction } from "@/lib/transactionService";
 
 export default function PaymentSuccessModal({
   registrationData,
@@ -47,11 +48,12 @@ export default function PaymentSuccessModal({
     }
   };
 
-  // Auto-generate & save PDF to localStorage + device upon component mount
+  // Auto-generate & save PDF to customer device + save transaction to Firebase Firestore
   useEffect(() => {
     if (!pdfTriggeredRef.current) {
       pdfTriggeredRef.current = true;
       handleDownloadPDF();
+      saveTransaction(registrationData, paymentData);
     }
   }, []);
 
