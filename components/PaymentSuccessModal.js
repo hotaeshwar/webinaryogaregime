@@ -58,52 +58,52 @@ export default function PaymentSuccessModal({
   }, []);
 
   // Registration details & confirmation ticket message for the Receiver / Organizer (+91 98769 63204)
-  const organizerNotificationMessage = `🎫 *WORKSHOP REGISTRATION TICKET & PAYMENT CONFIRMATION* ॐ
+  const organizerNotificationMessage = `*WORKSHOP REGISTRATION TICKET & PAYMENT CONFIRMATION*
 
 Hello ${registrationData.fullName},
-You have successfully registered and completed the payment of ₹1 for the Bandhas & Nauli Kriya Workshop.
+You have successfully registered and completed the payment of Rs. 19 for the Bandhas & Nauli Kriya Workshop.
 
-👤 *ATTENDEE DETAILS:*
-• Name: ${registrationData.fullName}
-• Email: ${registrationData.email}
-• WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
+*ATTENDEE DETAILS:*
+- Name: ${registrationData.fullName}
+- Email: ${registrationData.email}
+- WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
 
-🧘 *WORKSHOP DETAILS:*
-• Workshop: Lock Your Energies, Unlock Your Strength
-• Topic: Bandhas & Nauli Kriya Live Masterclass
-• Date: Saturday, 19 September
-• Time: 8:00 AM IST
-• Mode: Online (Live Interactive)
-• Duration: 90 Minutes
+*WORKSHOP DETAILS:*
+- Workshop: Lock Your Energies, Unlock Your Strength
+- Topic: Bandhas & Nauli Kriya Live Masterclass
+- Date: Saturday, 19 September
+- Time: 8:00 AM IST
+- Mode: Online (Live Interactive)
+- Duration: 90 Minutes
 
-💳 *PAYMENT VERIFICATION:*
-• Amount Paid: ₹1
-• Payment ID: ${paymentData.razorpay_payment_id}
-• Order ID: ${paymentData.razorpay_order_id}
-• Status: Verified & Confirmed ✓
-• PDF Ticket: Generated & downloaded to attendee device
+*PAYMENT VERIFICATION:*
+- Amount Paid: Rs. 19
+- Payment ID: ${paymentData.razorpay_payment_id}
+- Order ID: ${paymentData.razorpay_order_id}
+- Status: Verified & Confirmed
+- PDF Ticket: Generated & downloaded to attendee device
 
 Organizer Support: +91 98769 63204
 Keep this ticket message saved. See you in the session!`;
 
   // Attendee personal booking ticket pass message
-  const attendeePassMessage = `🎫 *OFFICIAL WORKSHOP ADMISSION PASS* ॐ
+  const attendeePassMessage = `*OFFICIAL WORKSHOP ADMISSION PASS*
 *Bandhas & Nauli Kriya Masterclass*
 
 Hello ${registrationData.fullName},
-You have successfully registered and completed the payment of ₹1 for the Bandhas & Nauli Kriya Workshop.
+You have successfully registered and completed the payment of Rs. 19 for the Bandhas & Nauli Kriya Workshop.
 
-📋 *TICKET DETAILS:*
-• Attendee: ${registrationData.fullName}
-• WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
-• Email: ${registrationData.email}
-• Workshop: Lock Your Energies, Unlock Your Strength
-• Date: Saturday, 19 September at 8:00 AM IST
-• Amount Paid: ₹1
-• Payment ID: ${paymentData.razorpay_payment_id}
-• Status: Confirmed ✓
+*TICKET DETAILS:*
+- Attendee: ${registrationData.fullName}
+- WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
+- Email: ${registrationData.email}
+- Workshop: Lock Your Energies, Unlock Your Strength
+- Date: Saturday, 19 September at 8:00 AM IST
+- Amount Paid: Rs. 19
+- Payment ID: ${paymentData.razorpay_payment_id}
+- Status: Confirmed
 
-📞 Organizer / Receiver Support: +91 98769 63204
+Organizer / Receiver Support: +91 98769 63204
 Keep this ticket message saved. See you in the session!`;
 
   // WhatsApp URLs
@@ -178,7 +178,7 @@ Keep this ticket message saved. See you in the session!`;
             <div className="flex justify-between items-center py-0.5 border-b border-wellness-border/50">
               <span className="text-wellness-muted font-medium">Amount Paid:</span>
               <span className="text-wellness-primary font-extrabold text-sm sm:text-base">
-                ₹1
+                ₹19
               </span>
             </div>
             <div className="flex justify-between items-start py-0.5 border-b border-wellness-border/50 text-[11px] sm:text-xs">

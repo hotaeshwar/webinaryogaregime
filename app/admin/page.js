@@ -272,7 +272,7 @@ export default function AdminPage() {
   // Summary Metrics
   const metrics = useMemo(() => {
     const totalCount = transactions.length;
-    const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 1), 0);
+    const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 19), 0);
 
     const today = new Date();
     const todayCount = transactions.filter((tx) => {
@@ -287,7 +287,7 @@ export default function AdminPage() {
     return { totalCount, totalRevenue, todayCount };
   }, [transactions]);
 
-  // Export to CSV
+  // Export to CSV formatted perfectly for Excel
   const handleExportCSV = () => {
     if (filteredTransactions.length === 0) return;
 
@@ -306,28 +306,62 @@ export default function AdminPage() {
       "Status",
     ];
 
-    const rows = filteredTransactions.map((tx, idx) => [
-      idx + 1,
-      `"${tx.dateString || ""}"`,
-      `"${tx.timeString || ""}"`,
-      `"${(tx.fullName || "").replace(/"/g, '""')}"`,
-      `"${(tx.email || "").replace(/"/g, '""')}"`,
-      `"${tx.countryCode || "+91"}"`,
-      `"${tx.whatsappNumber || ""}"`,
-      `"${(tx.workshop || "").replace(/"/g, '""')}"`,
-      tx.amount || 1,
-      `"${tx.paymentId || ""}"`,
-      `"${tx.orderId || ""}"`,
-      `"${tx.status || "SUCCESS"}"`,
-    ]);
+    const escapeCSV = (str) => `"${String(str ?? "").replace(/"/g, '""')}"`;
+    const formatAsTextCell = (str) => `="\t${String(str ?? "").replace(/"/g, '""')}"`;
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const rows = filteredTransactions.map((tx, idx) => {
+      // 1. Format Date cleanly
+      let dateVal = tx.dateString || "";
+      let timeVal = tx.timeString || "";
 
-    const encodedUri = encodeURI(csvContent);
+      if (!dateVal && (tx.isoDate || tx.clientTimestamp)) {
+        try {
+          const d = new Date(tx.isoDate || tx.clientTimestamp);
+          dateVal = d.toLocaleDateString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          });
+        } catch (e) {}
+      }
+
+      if (!timeVal && (tx.isoDate || tx.clientTimestamp)) {
+        try {
+          const d = new Date(tx.isoDate || tx.clientTimestamp);
+          timeVal = d.toLocaleTimeString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          });
+        } catch (e) {}
+      }
+
+      return [
+        idx + 1,
+        escapeCSV(dateVal || "N/A"),
+        escapeCSV(timeVal || "N/A"),
+        escapeCSV(tx.fullName || "N/A"),
+        escapeCSV(tx.email || "N/A"),
+        formatAsTextCell(tx.countryCode || "+91"),
+        formatAsTextCell(tx.whatsappNumber || ""),
+        escapeCSV(tx.workshop || "Bandhas & Nauli Kriya Workshop"),
+        tx.amount || 19,
+        formatAsTextCell(tx.paymentId || ""),
+        formatAsTextCell(tx.orderId || ""),
+        escapeCSV(tx.status || "SUCCESS"),
+      ];
+    });
+
+    const csvContent = [headers.join(","), ...rows.map((e) => e.join(","))].join("\r\n");
+
+    // Add UTF-8 BOM so Excel opens with correct characters and structure
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute(
       "download",
       `Workshop_Transactions_${new Date().toISOString().slice(0, 10)}.csv`
@@ -335,6 +369,7 @@ export default function AdminPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Loading Screen
@@ -668,7 +703,7 @@ export default function AdminPage() {
                 ₹{metrics.totalRevenue}
               </h3>
               <p className="text-[11px] text-wellness-muted font-medium mt-1">
-                ₹1 Token Fee per attendee
+                ₹19 Token Fee per attendee
               </p>
             </div>
             <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700">
@@ -873,7 +908,7 @@ export default function AdminPage() {
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="font-extrabold text-wellness-primary font-mono text-sm">
-                            ₹{tx.amount || 1}
+                            ₹{tx.amount || 19}
                           </span>
                         </td>
                         <td className="py-3.5 px-4">
@@ -976,7 +1011,7 @@ export default function AdminPage() {
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
                   <span className="text-wellness-muted font-medium">Amount Paid:</span>
                   <span className="text-wellness-primary font-extrabold font-mono text-base">
-                    ₹{selectedTx.amount || 1}
+                    ₹{selectedTx.amount || 19}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">

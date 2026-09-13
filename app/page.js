@@ -55,7 +55,7 @@ export default function Home() {
         <div className="block lg:hidden mb-4 text-center space-y-1.5">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-wellness-gold/15 text-wellness-goldDark border border-wellness-gold/30">
             <Sparkles className="w-3 h-3 text-wellness-gold" />
-            Live Online Masterclass • ₹1
+            Live Online Masterclass • ₹19
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-wellness-dark tracking-tight font-serif leading-tight">
             Lock Your Energies,{" "}

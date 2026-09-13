@@ -162,8 +162,8 @@ export default function RegistrationForm() {
       const razorpayKey =
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_Tb4Km1evAI6DKr";
 
-      // Fixed ₹1 (100 paise) client-side
-      const orderAmount = 100;
+      // Fixed ₹19 (1900 paise) client-side
+      const orderAmount = 1900;
       const orderCurrency = "INR";
 
       // Open Razorpay Standard Web Checkout Modal
@@ -172,7 +172,7 @@ export default function RegistrationForm() {
         amount: orderAmount,
         currency: orderCurrency,
         name: "Bandhas & Nauli Kriya Workshop",
-        description: "Workshop Registration (₹1)",
+        description: "Workshop Registration (₹19)",
         image: "/logo1.png",
         prefill: {
           name: formData.fullName.trim(),
@@ -273,14 +273,14 @@ export default function RegistrationForm() {
       case "failed":
         return (
           <>
-            <span>Try Payment Again (₹1)</span>
+            <span>Try Payment Again (₹19)</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </>
         );
       default:
         return (
           <>
-            <span>Register & Pay ₹1</span>
+            <span>Register & Pay ₹19</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </>
         );
@@ -500,7 +500,7 @@ export default function RegistrationForm() {
                 className="mt-1 w-4.5 h-4.5 rounded border-wellness-border text-wellness-primary focus:ring-wellness-primary/20 accent-wellness-primary cursor-pointer shrink-0"
               />
               <span className="text-xs text-wellness-muted leading-relaxed">
-                I understand this is an interactive online workshop on Saturday, 19 Sept (8:00 AM) and agree to complete the ₹1 token fee to reserve my seat.
+                I understand this is an interactive online workshop on Saturday, 19 Sept (8:00 AM) and agree to complete the ₹19 token fee to reserve my seat.
               </span>
             </label>
             {touched.termsAccepted && formErrors.termsAccepted && (

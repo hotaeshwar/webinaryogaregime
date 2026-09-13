@@ -19,7 +19,7 @@ const playfairDisplay = Playfair_Display({
 export const metadata = {
   title: "Bandhas & Nauli Kriya Workshop Registration",
   description:
-    "Register for the Bandhas & Nauli Kriya Workshop and securely complete your ₹1 workshop payment online.",
+    "Register for the Bandhas & Nauli Kriya Workshop and securely complete your ₹19 workshop payment online.",
   keywords: [
     "Bandhas",
     "Nauli Kriya",

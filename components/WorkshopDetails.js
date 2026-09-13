@@ -134,7 +134,7 @@ export default function WorkshopDetails() {
         </div>
         <div className="text-right">
           <span className="text-xs line-through text-gray-300 mr-2">₹499</span>
-          <span className="text-3xl font-extrabold text-wellness-goldLight">₹1</span>
+          <span className="text-3xl font-extrabold text-wellness-goldLight">₹19</span>
           <span className="block text-[11px] text-gray-200 uppercase tracking-wider font-semibold">
             Token Fee
           </span>
