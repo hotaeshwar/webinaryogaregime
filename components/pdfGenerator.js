@@ -1,5 +1,3 @@
-import { jsPDF } from "jspdf";
-
 /**
  * Loads an image from a URL and converts it to a base64 DataURL
  */
@@ -66,7 +64,10 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
       console.warn("Failed to write booking to localStorage:", lsErr);
     }
 
-    // 2. Create PDF instance (A4 format)
+    // 2. Dynamically load jsPDF (browser-safe)
+    const { jsPDF } = await import("jspdf");
+
+    // Create PDF instance (A4 format)
     const doc = new jsPDF({
       orientation: "portrait",
       unit: "mm",

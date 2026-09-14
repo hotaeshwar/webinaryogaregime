@@ -339,7 +339,7 @@ export default function AdminPage() {
       const payData = {
         razorpay_payment_id: tx.paymentId,
         razorpay_order_id: tx.orderId,
-        amount: tx.amount || 19,
+        amount: tx.amount || 1,
       };
 
       const res = await sendRegistrationEmail(regData, payData);
@@ -391,7 +391,7 @@ ATTENDEE DETAILS:
 - Contact: ${tx.countryCode || "+91"} ${tx.whatsappNumber || tx.phone || "N/A"}
 
 TRANSACTION AND PAYMENT DETAILS:
-- Amount Paid: Rs. ${tx.amount || 19} INR
+- Amount Paid: Rs. ${tx.amount || 1} INR
 - Payment Status: Verified and Confirmed (${tx.status || "SUCCESS"})
 - Razorpay Payment ID: ${tx.paymentId || "N/A"}
 - Razorpay Order ID: ${tx.orderId || "N/A"}
@@ -474,7 +474,7 @@ Yogaregime Team`;
   // Summary Metrics
   const metrics = useMemo(() => {
     const totalCount = transactions.length;
-    const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 19), 0);
+    const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 1), 0);
 
     const today = new Date();
     const todayCount = transactions.filter((tx) => {
@@ -549,7 +549,7 @@ Yogaregime Team`;
         formatAsTextCell(tx.countryCode || "+91"),
         formatAsTextCell(tx.whatsappNumber || ""),
         escapeCSV(tx.workshop || "Bandhas & Nauli Kriya Workshop"),
-        tx.amount || 19,
+        tx.amount || 1,
         formatAsTextCell(tx.paymentId || ""),
         formatAsTextCell(tx.orderId || ""),
         escapeCSV(tx.status || "SUCCESS"),
@@ -964,7 +964,7 @@ Yogaregime Team`;
                 ₹{metrics.totalRevenue}
               </h3>
               <p className="text-[10px] sm:text-[11px] text-wellness-muted font-medium mt-0.5 sm:mt-1 truncate">
-                ₹19 token fee
+                ₹1 token fee
               </p>
             </div>
             <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700 shrink-0">
@@ -1175,7 +1175,7 @@ Yogaregime Team`;
                             Amount Paid
                           </span>
                           <span className="font-extrabold text-wellness-primary font-mono text-sm">
-                            ₹{tx.amount || 19}
+                            ₹{tx.amount || 1}
                           </span>
                           <span className="text-[10px] text-emerald-700 block font-medium">
                             {tx.countryCode || "+91"} {attendeeNumber}
@@ -1294,7 +1294,7 @@ Yogaregime Team`;
                           </td>
                           <td className="py-3.5 px-4">
                             <span className="font-extrabold text-wellness-primary font-mono text-sm">
-                              ₹{tx.amount || 19}
+                              ₹{tx.amount || 1}
                             </span>
                           </td>
                           <td className="py-3.5 px-4">
@@ -1412,7 +1412,7 @@ Yogaregime Team`;
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
                   <span className="text-wellness-muted font-medium">Amount:</span>
                   <span className="text-wellness-primary font-extrabold font-mono text-base">
-                    ₹{selectedTx.amount || 19}
+                    ₹{selectedTx.amount || 1}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">

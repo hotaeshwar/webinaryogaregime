@@ -175,7 +175,7 @@ export default function RegistrationForm() {
         currency: orderCurrency,
         name: "Bandhas & Nauli Kriya Workshop",
         description: "Workshop Registration (₹19)",
-        image: "/logo1.png",
+        image: typeof window !== "undefined" && !window.location.hostname.includes("localhost") ? "/logo1.png" : undefined,
         prefill: {
           name: formData.fullName.trim(),
           email: formData.email.trim(),
