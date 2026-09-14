@@ -17,6 +17,7 @@ import {
   deleteTransaction,
   syncRazorpayToFirestore,
 } from "@/lib/transactionService";
+import { sendRegistrationEmail } from "@/lib/emailService";
 import {
   Lock,
   Mail,
@@ -91,6 +92,7 @@ export default function AdminPage() {
   // Selected Transaction Modal
   const [selectedTx, setSelectedTx] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
+  const [sendingEmailId, setSendingEmailId] = useState(null);
 
   // 1. Check & validate existing session with Firebase Auth on mount
   useEffect(() => {
@@ -319,8 +321,52 @@ export default function AdminPage() {
     }
   };
 
-  // Helper to generate clean plain text Event & Transaction WhatsApp message
-  const getAdminWhatsAppMessage = (tx) => {
+  // Send / Resend Email Confirmation via EmailJS
+  const handleSendConfirmationEmail = async (tx) => {
+    if (!tx) return;
+    const txId = tx.id || tx.paymentId;
+    setSendingEmailId(txId);
+    setStatusMessage(null);
+
+    try {
+      const regData = {
+        fullName: tx.fullName,
+        email: tx.email,
+        countryCode: tx.countryCode || "+91",
+        whatsappNumber: tx.whatsappNumber || tx.phone,
+        phone: tx.phone || tx.whatsappNumber,
+      };
+      const payData = {
+        razorpay_payment_id: tx.paymentId,
+        razorpay_order_id: tx.orderId,
+        amount: tx.amount || 19,
+      };
+
+      const res = await sendRegistrationEmail(regData, payData);
+      if (res.success) {
+        setStatusMessage({
+          type: "success",
+          text: `Confirmation email dispatched to ${tx.email || "attendee"}!`,
+        });
+      } else {
+        setStatusMessage({
+          type: "info",
+          text: `Email processed: ${res.error || "Dispatched"}`,
+        });
+      }
+    } catch (e) {
+      setStatusMessage({
+        type: "error",
+        text: `Email error: ${e.message || "Could not deliver email"}`,
+      });
+    } finally {
+      setSendingEmailId(null);
+      setTimeout(() => setStatusMessage(null), 5000);
+    }
+  };
+
+  // Helper to generate clean plain text Event & Transaction confirmation message
+  const getAdminEmailMessage = (tx) => {
     if (!tx) return "";
     const dateFormatted = tx.dateString || "Saturday, 19 Sept";
     const timeFormatted = tx.timeString ? ` at ${tx.timeString}` : "";
@@ -337,12 +383,12 @@ EVENT AND WORKSHOP DETAILS:
 - Date: Saturday, 19 September
 - Time: 8:00 AM IST (90 Minutes Live Interactive)
 - Mode: Online Live Session
-- Organizer Support: +91 98769 63204
+- Organizer Support: support@yogaregime.com
 
 ATTENDEE DETAILS:
 - Name: ${tx.fullName || "N/A"}
 - Email: ${tx.email || "N/A"}
-- WhatsApp: ${tx.countryCode || "+91"} ${tx.whatsappNumber || "N/A"}
+- Contact: ${tx.countryCode || "+91"} ${tx.whatsappNumber || tx.phone || "N/A"}
 
 TRANSACTION AND PAYMENT DETAILS:
 - Amount Paid: Rs. ${tx.amount || 19} INR
@@ -356,7 +402,7 @@ SESSION GUIDELINES:
 2. Wear comfortable yoga attire and keep a yoga mat ready.
 3. Join 5-10 minutes prior to 8:00 AM IST.
 
-The live meeting joining link will be shared prior to the session start.
+The live meeting joining link will be shared to your registered email prior to the session start.
 
 Yogaregime Team`;
   };
@@ -1082,11 +1128,8 @@ Yogaregime Team`;
               {/* 1. MOBILE VIEW: Responsive Cards for Phones & Small Screens (< md) */}
               <div className="block md:hidden divide-y divide-wellness-border/60">
                 {filteredTransactions.map((tx, idx) => {
-                  const attendeeNumber = (tx.whatsappNumber || "").replace(/\D/g, "");
-                  const fullContactNumber = `${(tx.countryCode || "+91").replace(/\D/g, "")}${attendeeNumber}`;
-                  const whatsappDirectUrl = `https://wa.me/${fullContactNumber}?text=${encodeURIComponent(
-                    getAdminWhatsAppMessage(tx)
-                  )}`;
+                  const attendeeNumber = (tx.whatsappNumber || tx.phone || "").replace(/\D/g, "");
+                  const isSendingThis = sendingEmailId === (tx.id || tx.paymentId);
 
                   return (
                     <div
@@ -1163,15 +1206,20 @@ Yogaregime Team`;
 
                       {/* Mobile Card Action Buttons */}
                       <div className="flex items-center gap-2 pt-0.5">
-                        <a
-                          href={whatsappDirectUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold shadow-xs transition-all"
+                        <button
+                          type="button"
+                          onClick={() => handleSendConfirmationEmail(tx)}
+                          disabled={isSendingThis}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                          title="Send Email Confirmation via EmailJS"
                         >
-                          <MessageCircle className="w-3.5 h-3.5" />
-                          <span>WhatsApp</span>
-                        </a>
+                          {isSendingThis ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Mail className="w-3.5 h-3.5" />
+                          )}
+                          <span>{isSendingThis ? "Sending..." : "Email Pass"}</span>
+                        </button>
 
                         <button
                           onClick={() => setSelectedTx(tx)}
@@ -1201,7 +1249,7 @@ Yogaregime Team`;
                       <th className="py-3 px-4">#</th>
                       <th className="py-3 px-4">Date & Time</th>
                       <th className="py-3 px-4">Attendee</th>
-                      <th className="py-3 px-4">WhatsApp / Phone</th>
+                      <th className="py-3 px-4">Contact / Phone</th>
                       <th className="py-3 px-4">Amount</th>
                       <th className="py-3 px-4">Payment ID</th>
                       <th className="py-3 px-4">Status</th>
@@ -1210,11 +1258,8 @@ Yogaregime Team`;
                   </thead>
                   <tbody className="divide-y divide-wellness-border/60 text-xs">
                     {filteredTransactions.map((tx, idx) => {
-                      const attendeeNumber = (tx.whatsappNumber || "").replace(/\D/g, "");
-                      const fullContactNumber = `${(tx.countryCode || "+91").replace(/\D/g, "")}${attendeeNumber}`;
-                      const whatsappDirectUrl = `https://wa.me/${fullContactNumber}?text=${encodeURIComponent(
-                        getAdminWhatsAppMessage(tx)
-                      )}`;
+                      const attendeeNumber = (tx.whatsappNumber || tx.phone || "").replace(/\D/g, "");
+                      const isSendingThis = sendingEmailId === (tx.id || tx.paymentId);
 
                       return (
                         <tr
@@ -1243,7 +1288,7 @@ Yogaregime Team`;
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-1.5">
                               <span className="font-mono font-medium text-wellness-dark">
-                                {tx.countryCode || "+91"} {tx.whatsappNumber || "N/A"}
+                                {tx.countryCode || "+91"} {attendeeNumber || "N/A"}
                               </span>
                             </div>
                           </td>
@@ -1278,17 +1323,21 @@ Yogaregime Team`;
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              {/* Direct WhatsApp Chat Link */}
-                              <a
-                                href={whatsappDirectUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition-colors"
-                                title="Open WhatsApp chat with prefilled confirmation"
+                              {/* Send / Resend Email Confirmation Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleSendConfirmationEmail(tx)}
+                                disabled={isSendingThis}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition-colors cursor-pointer"
+                                title="Send Email Confirmation via EmailJS"
                               >
-                                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>WhatsApp</span>
-                              </a>
+                                {isSendingThis ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                                ) : (
+                                  <Mail className="w-3.5 h-3.5 text-emerald-600" />
+                                )}
+                                <span>{isSendingThis ? "Sending..." : "Email Pass"}</span>
+                              </button>
 
                               {/* View Full Modal */}
                               <button
@@ -1355,9 +1404,9 @@ Yogaregime Team`;
                   <span className="text-wellness-dark font-bold break-all text-right max-w-[200px]">{selectedTx.email}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
-                  <span className="text-wellness-muted font-medium">WhatsApp:</span>
+                  <span className="text-wellness-muted font-medium">Contact:</span>
                   <span className="text-wellness-dark font-bold font-mono text-right">
-                    {selectedTx.countryCode} {selectedTx.whatsappNumber}
+                    {selectedTx.countryCode} {selectedTx.whatsappNumber || selectedTx.phone}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
@@ -1395,34 +1444,39 @@ Yogaregime Team`;
 
               {/* Action Buttons */}
               <div className="space-y-2 pt-1">
-                {/* Direct WhatsApp Web Link */}
-                <a
-                  href={`https://wa.me/${(selectedTx.countryCode || "+91").replace(/\D/g, "")}${(selectedTx.whatsappNumber || "").replace(/\D/g, "")}?text=${encodeURIComponent(
-                    getAdminWhatsAppMessage(selectedTx)
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow-md transition-all text-center"
+                {/* Send Email Confirmation Button via EmailJS */}
+                <button
+                  type="button"
+                  onClick={() => handleSendConfirmationEmail(selectedTx)}
+                  disabled={sendingEmailId === (selectedTx.id || selectedTx.paymentId)}
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white font-bold text-xs sm:text-sm shadow-md transition-all text-center cursor-pointer"
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Send WhatsApp Confirmation</span>
-                  <ExternalLink className="w-3.5 h-3.5 opacity-75" />
-                </a>
+                  {sendingEmailId === (selectedTx.id || selectedTx.paymentId) ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Mail className="w-4 h-4" />
+                  )}
+                  <span>
+                    {sendingEmailId === (selectedTx.id || selectedTx.paymentId)
+                      ? "Sending Confirmation Email..."
+                      : "Send Email Confirmation (EmailJS)"}
+                  </span>
+                </button>
 
                 <button
                   type="button"
-                  onClick={() => handleCopy(getAdminWhatsAppMessage(selectedTx), "modal_msg")}
+                  onClick={() => handleCopy(getAdminEmailMessage(selectedTx), "modal_msg")}
                   className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark text-xs font-semibold border border-wellness-border transition-colors cursor-pointer"
                 >
                   {copiedId === "modal_msg" ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>WhatsApp Message Copied!</span>
+                      <span>Email Text Copied!</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5 text-wellness-muted" />
-                      <span>Copy WhatsApp Confirmation Text</span>
+                      <span>Copy Email Confirmation Text</span>
                     </>
                   )}
                 </button>
@@ -1448,7 +1502,6 @@ Yogaregime Team`;
           </div>
         </div>
       )}
-
 
     </div>
   );

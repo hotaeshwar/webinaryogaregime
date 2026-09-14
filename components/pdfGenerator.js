@@ -164,9 +164,9 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
     doc.setFont("helvetica", "normal");
     doc.text(String(registrationData.email || "N/A"), cardX + 45, cardY + 26);
 
-    // Row 3: WhatsApp
+    // Row 3: Contact No
     doc.setFont("helvetica", "bold");
-    doc.text("WhatsApp No:", cardX + 8, cardY + 34);
+    doc.text("Contact No:", cardX + 8, cardY + 34);
     doc.setFont("helvetica", "normal");
     doc.text(
       `${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}`.trim(),
@@ -258,10 +258,10 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
     doc.setFont("helvetica", "normal");
 
     const guidelines = [
-      "1. The live interactive session joining link will be shared to your WhatsApp & Email prior to the masterclass.",
+      "1. The live interactive session joining link will be sent to your registered Email prior to the masterclass.",
       "2. Please join with an empty stomach (or at least 3-4 hours after a meal) for optimal Bandha and Nauli practice.",
       "3. Wear comfortable yoga attire and keep a yoga mat, water, and an open space ready.",
-      "4. Helpline & Support: WhatsApp +91 98769 63204 for any coordination or questions.",
+      "4. Support & Helpline: support@yogaregime.com for any questions or coordination.",
     ];
 
     let gY = noteY + 13;

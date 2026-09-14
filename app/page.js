@@ -1,7 +1,7 @@
 import React from "react";
 import WorkshopDetails from "@/components/WorkshopDetails";
 import RegistrationForm from "@/components/RegistrationForm";
-import { Sparkles, Shield, Heart, HelpCircle, PhoneCall } from "lucide-react";
+import { Sparkles, Shield, Heart, HelpCircle, PhoneCall, Mail } from "lucide-react";
 
 export default function Home() {
   return (
@@ -115,14 +115,14 @@ export default function Home() {
 
             <div className="flex items-center gap-3 justify-center sm:justify-start">
               <div className="w-10 h-10 rounded-xl bg-white border border-wellness-border flex items-center justify-center text-wellness-primary shrink-0 shadow-sm">
-                <Heart className="w-5 h-5 text-rose-600" />
+                <Mail className="w-5 h-5 text-wellness-primary" />
               </div>
               <div>
                 <h4 className="text-xs font-bold text-wellness-dark uppercase tracking-wider">
-                  WhatsApp Support
+                  Email Support
                 </h4>
                 <p className="text-xs text-wellness-muted">
-                  Direct coordinator assistance at +91 98769 63204
+                  Direct coordinator assistance at support@yogaregime.com
                 </p>
               </div>
             </div>
@@ -143,8 +143,8 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <HelpCircle className="w-3.5 h-3.5" />
-              Questions? WhatsApp +91 98769 63204
+              <Mail className="w-3.5 h-3.5 text-wellness-primary" />
+              support@yogaregime.com
             </span>
             <span className="text-wellness-border">•</span>
             <a

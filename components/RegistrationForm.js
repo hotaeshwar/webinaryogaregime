@@ -17,6 +17,7 @@ import PaymentProgress from "./PaymentProgress";
 import PaymentSuccessModal from "./PaymentSuccessModal";
 import Toast from "./Toast";
 import { saveTransaction } from "@/lib/transactionService";
+import { sendRegistrationEmail } from "@/lib/emailService";
 
 const COUNTRY_CODES = [
   { code: "+91", country: "India (IN)", flag: "🇮🇳", digits: 10 },
@@ -90,14 +91,14 @@ export default function RegistrationForm() {
       errors.email = "Please enter a valid email address.";
     }
 
-    // WhatsApp Number
+    // Mobile Number
     const phoneClean = formData.whatsappNumber.replace(/\D/g, "");
     if (!phoneClean) {
-      errors.whatsappNumber = "WhatsApp number is required.";
+      errors.whatsappNumber = "Mobile number is required.";
     } else if (formData.countryCode === "+91" && phoneClean.length !== 10) {
       errors.whatsappNumber = "Indian mobile number must be exactly 10 digits.";
     } else if (phoneClean.length < 7 || phoneClean.length > 15) {
-      errors.whatsappNumber = "Please enter a valid phone number.";
+      errors.whatsappNumber = "Please enter a valid mobile number.";
     }
 
     // Terms
@@ -220,6 +221,11 @@ export default function RegistrationForm() {
           // Save transaction to Firebase Firestore & local storage immediately
           saveTransaction(formData, payData).catch((err) => {
             console.warn("Background saveTransaction error:", err);
+          });
+
+          // Dispatch confirmation email via EmailJS immediately
+          sendRegistrationEmail(formData, payData).catch((err) => {
+            console.warn("Background sendRegistrationEmail error:", err);
           });
 
           // Mark payment 100% verified & confirmed
@@ -411,13 +417,13 @@ export default function RegistrationForm() {
             )}
           </div>
 
-          {/* WhatsApp Number Field */}
+          {/* Mobile Number Field */}
           <div className="space-y-1.5">
             <label
               htmlFor="whatsappNumber"
               className="block text-xs font-bold uppercase tracking-wider text-wellness-dark"
             >
-              WhatsApp Number <span className="text-red-500">*</span>
+              Mobile Number <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2">
               {/* Country Code Selector */}
