@@ -16,6 +16,7 @@ import {
 import PaymentProgress from "./PaymentProgress";
 import PaymentSuccessModal from "./PaymentSuccessModal";
 import Toast from "./Toast";
+import { saveTransaction } from "@/lib/transactionService";
 
 const COUNTRY_CODES = [
   { code: "+91", country: "India (IN)", flag: "🇮🇳", digits: 10 },
@@ -211,13 +212,20 @@ export default function RegistrationForm() {
             return;
           }
 
+          const payData = {
+            razorpay_payment_id: paymentId,
+            razorpay_order_id: returnedOrderId,
+          };
+
+          // Save transaction to Firebase Firestore & local storage immediately
+          saveTransaction(formData, payData).catch((err) => {
+            console.warn("Background saveTransaction error:", err);
+          });
+
           // Mark payment 100% verified & confirmed
           setProgressStage(4); // 100% Confirmed
           setPaymentStatus("success");
-          setVerifiedPaymentData({
-            razorpay_payment_id: paymentId,
-            razorpay_order_id: returnedOrderId,
-          });
+          setVerifiedPaymentData(payData);
           showToast("Payment Successful! Booking Confirmed ✓", "success");
         },
       };

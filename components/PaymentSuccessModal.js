@@ -10,7 +10,8 @@ import {
   UserCheck,
   Download,
   FileText,
-  Save,
+  X,
+  Clock,
 } from "lucide-react";
 import { generateAndSaveWorkshopPDF } from "./pdfGenerator";
 import { saveTransaction } from "@/lib/transactionService";
@@ -21,8 +22,7 @@ export default function PaymentSuccessModal({
   onReset,
 }) {
   const [copied, setCopied] = useState(false);
-  const [countdown, setCountdown] = useState(4);
-  const [redirectAttempted, setRedirectAttempted] = useState(false);
+  const [countdown, setCountdown] = useState(6); // 6 seconds timer
   const [pdfGenerating, setPdfGenerating] = useState(false);
   const [pdfDownloaded, setPdfDownloaded] = useState(false);
   const pdfTriggeredRef = useRef(false);
@@ -48,7 +48,7 @@ export default function PaymentSuccessModal({
     }
   };
 
-  // Auto-generate & save PDF to customer device + save transaction to Firebase Firestore
+  // Auto-generate & save PDF to customer device + save transaction to Firebase Firestore immediately
   useEffect(() => {
     if (!pdfTriggeredRef.current) {
       pdfTriggeredRef.current = true;
@@ -57,43 +57,56 @@ export default function PaymentSuccessModal({
     }
   }, []);
 
+  // 6-Second Auto-dismiss timer
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (countdown === 0) {
+      // Upon 6 seconds finished, close modal cleanly
+      if (onReset) onReset();
+    }
+  }, [countdown, onReset]);
+
   // Registration details & confirmation ticket message for the Receiver / Organizer (+91 98769 63204)
-  const organizerNotificationMessage = `*WORKSHOP REGISTRATION TICKET & PAYMENT CONFIRMATION*
+  const organizerNotificationMessage = `WORKSHOP REGISTRATION TICKET AND PAYMENT CONFIRMATION
 
 Hello ${registrationData.fullName},
-You have successfully registered and completed the payment of Rs. 19 for the Bandhas & Nauli Kriya Workshop.
+You have successfully registered and completed the payment of Rs. 19 for the Bandhas and Nauli Kriya Workshop.
 
-*ATTENDEE DETAILS:*
+ATTENDEE DETAILS:
 - Name: ${registrationData.fullName}
 - Email: ${registrationData.email}
 - WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
 
-*WORKSHOP DETAILS:*
+WORKSHOP DETAILS:
 - Workshop: Lock Your Energies, Unlock Your Strength
-- Topic: Bandhas & Nauli Kriya Live Masterclass
+- Topic: Bandhas and Nauli Kriya Live Masterclass
 - Date: Saturday, 19 September
 - Time: 8:00 AM IST
 - Mode: Online (Live Interactive)
 - Duration: 90 Minutes
 
-*PAYMENT VERIFICATION:*
+PAYMENT VERIFICATION:
 - Amount Paid: Rs. 19
 - Payment ID: ${paymentData.razorpay_payment_id}
 - Order ID: ${paymentData.razorpay_order_id}
-- Status: Verified & Confirmed
-- PDF Ticket: Generated & downloaded to attendee device
+- Status: Verified and Confirmed
+- PDF Ticket: Generated and downloaded to attendee device
 
 Organizer Support: +91 98769 63204
 Keep this ticket message saved. See you in the session!`;
 
   // Attendee personal booking ticket pass message
-  const attendeePassMessage = `*OFFICIAL WORKSHOP ADMISSION PASS*
-*Bandhas & Nauli Kriya Masterclass*
+  const attendeePassMessage = `OFFICIAL WORKSHOP ADMISSION PASS
+Bandhas and Nauli Kriya Masterclass
 
 Hello ${registrationData.fullName},
-You have successfully registered and completed the payment of Rs. 19 for the Bandhas & Nauli Kriya Workshop.
+You have successfully registered and completed the payment of Rs. 19 for the Bandhas and Nauli Kriya Workshop.
 
-*TICKET DETAILS:*
+TICKET DETAILS:
 - Attendee: ${registrationData.fullName}
 - WhatsApp: ${registrationData.countryCode} ${registrationData.whatsappNumber}
 - Email: ${registrationData.email}
@@ -115,19 +128,6 @@ Keep this ticket message saved. See you in the session!`;
     attendeePassMessage
   )}`;
 
-  // Auto-redirect to WhatsApp receiver after ticket download
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (countdown === 0 && !redirectAttempted) {
-      setRedirectAttempted(true);
-      window.location.href = organizerWhatsAppUrl;
-    }
-  }, [countdown, redirectAttempted, organizerWhatsAppUrl]);
-
   const handleCopyMessage = () => {
     navigator.clipboard.writeText(organizerNotificationMessage);
     setCopied(true);
@@ -137,6 +137,15 @@ Keep this ticket message saved. See you in the session!`;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-wellness-dark/75 backdrop-blur-md animate-fade-in overflow-y-auto">
       <div className="relative w-full max-w-lg my-6 bg-white rounded-3xl shadow-2xl border border-wellness-border overflow-hidden animate-fade-up">
+        {/* Close / Cancel (✕) Button */}
+        <button
+          onClick={onReset}
+          className="absolute top-3.5 right-3.5 z-20 p-2 rounded-full bg-black/20 hover:bg-black/35 text-white transition-colors cursor-pointer"
+          title="Cancel and close"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         {/* Top Header Banner */}
         <div className="bg-gradient-to-r from-wellness-primaryDark via-wellness-primary to-wellness-primaryLight p-5 sm:p-6 text-center text-white relative">
           <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center mb-3 border-2 border-wellness-goldLight/40 shadow-glow-green">
@@ -151,6 +160,14 @@ Keep this ticket message saved. See you in the session!`;
           <p className="text-xs sm:text-sm text-gray-200 mt-1">
             Bandhas & Nauli Kriya Workshop • Sat, 19 Sept (8:00 AM)
           </p>
+
+          {/* 6-Second Timer Countdown Badge */}
+          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm text-xs font-mono text-emerald-200 border border-emerald-400/30">
+            <Clock className="w-3.5 h-3.5 text-wellness-goldLight animate-spin-slow" />
+            <span>
+              Auto-closing in <strong className="text-white font-bold">{countdown}s</strong> • Tap ✕ to close
+            </span>
+          </div>
         </div>
 
         {/* Card Content */}
@@ -199,46 +216,29 @@ Keep this ticket message saved. See you in the session!`;
             </div>
           </div>
 
-          {/* Auto Transfer Banner */}
-          <div className="text-center space-y-1 bg-emerald-50/90 p-3.5 rounded-2xl border border-emerald-200">
-            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-center gap-1.5">
-              <UserCheck className="w-4 h-4 text-emerald-600" />
-              Ticket Downloaded & Confirmation Ready
-            </p>
-            <p className="text-xs sm:text-sm font-medium text-wellness-dark">
-              {countdown > 0 ? (
-                <>
-                  Opening WhatsApp in{" "}
-                  <span className="font-extrabold text-wellness-primary font-mono text-base">
-                    {countdown}s
-                  </span>{" "}
-                  to send confirmation ticket to receiver...
-                </>
-              ) : (
-                "Opening WhatsApp with confirmation ticket for receiver..."
-              )}
-            </p>
-          </div>
-
-          {/* WhatsApp Action Buttons */}
+          {/* Action Buttons */}
           <div className="space-y-2.5">
             {/* 1. Send to Coordinator / Receiver */}
             <a
               href={organizerWhatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm sm:text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all text-center"
             >
               <MessageCircle className="w-5 h-5 fill-current" />
-              <span>Send Confirmation Ticket to Receiver (+91 98769 63204)</span>
+              <span>Send Ticket to WhatsApp (+91 98769 63204)</span>
               <ExternalLink className="w-4 h-4 opacity-80" />
             </a>
 
             {/* 2. Send to Attendee's Own WhatsApp */}
             <a
               href={attendeeWhatsAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark text-xs sm:text-sm font-semibold border border-wellness-border transition-colors text-center"
             >
               <Send className="w-3.5 h-3.5 text-wellness-primary" />
-              <span>Save Pass to My WhatsApp ({registrationData.countryCode} {registrationData.whatsappNumber})</span>
+              <span>Save Pass to My Phone ({registrationData.countryCode} {registrationData.whatsappNumber})</span>
             </a>
 
             {/* 3. Automatic PDF Ticket Pass & Local Storage Record */}
@@ -250,12 +250,9 @@ Keep this ticket message saved. See you in the session!`;
                 </span>
                 <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300/60 flex items-center gap-1">
                   <Check className="w-3 h-3" />
-                  Saved locally
+                  Saved to Firebase
                 </span>
               </div>
-              <p className="text-[11px] text-wellness-muted leading-relaxed">
-                A branded PDF receipt with logo, payment ID & workshop guidelines has been generated and saved to your device.
-              </p>
               <button
                 type="button"
                 onClick={handleDownloadPDF}
@@ -273,22 +270,22 @@ Keep this ticket message saved. See you in the session!`;
               </button>
             </div>
 
-            {/* Utility buttons */}
+            {/* Utility buttons: Copy + Cancel / Close */}
             <div className="flex items-center gap-2 pt-1">
               <button
                 type="button"
                 onClick={handleCopyMessage}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-wellness-dark text-xs font-semibold border border-gray-200 transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-wellness-dark text-xs font-semibold border border-gray-200 transition-colors"
               >
                 {copied ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Booking Pass Copied!</span>
+                    <span>Pass Copied!</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5 text-wellness-muted" />
-                    <span>Copy Confirmation</span>
+                    <span>Copy Ticket</span>
                   </>
                 )}
               </button>
@@ -296,9 +293,10 @@ Keep this ticket message saved. See you in the session!`;
               <button
                 type="button"
                 onClick={onReset}
-                className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold border border-red-200 transition-colors cursor-pointer flex items-center justify-center gap-1"
               >
-                Done
+                <X className="w-3.5 h-3.5" />
+                <span>Close / Cancel ({countdown}s)</span>
               </button>
             </div>
           </div>
@@ -306,7 +304,7 @@ Keep this ticket message saved. See you in the session!`;
           {/* Security badge */}
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-wellness-muted font-medium pt-0.5">
             <ShieldCheck className="w-3.5 h-3.5 text-wellness-primary" />
-            <span>Registration verified via Razorpay payment gateway</span>
+            <span>Registration verified & synced with Firebase Database</span>
           </div>
         </div>
       </div>

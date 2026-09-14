@@ -10,7 +10,12 @@ import {
   sendAdminPasswordReset,
   firebaseConfig,
 } from "@/lib/firebase";
-import { subscribeToTransactions, getTransactionsList } from "@/lib/transactionService";
+import {
+  subscribeToTransactions,
+  getTransactionsList,
+  saveTransaction,
+  deleteTransaction,
+} from "@/lib/transactionService";
 import {
   Lock,
   Mail,
@@ -40,6 +45,15 @@ import {
   ArrowUpDown,
   Filter,
   Flame,
+  Trash2,
+  Database,
+  Info,
+  HelpCircle,
+  Send,
+  Zap,
+  Settings,
+  CheckCheck,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -63,6 +77,8 @@ export default function AdminPage() {
   const [transactions, setTransactions] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [creatingTest, setCreatingTest] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
 
   // Filter & Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,17 +90,39 @@ export default function AdminPage() {
   const [selectedTx, setSelectedTx] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
+  // Automated WhatsApp Dispatch States
+  const [autoSendingId, setAutoSendingId] = useState(null);
+  const [sentSuccessMap, setSentSuccessMap] = useState({});
+  const [showGatewaySettings, setShowGatewaySettings] = useState(false);
+  const [gatewayConfig, setGatewayConfig] = useState({
+    provider: "ultramsg",
+    instanceId: "",
+    apiToken: "",
+  });
+
+  // Load saved gateway settings from localStorage on client
+  useEffect(() => {
+    try {
+      const savedConfig = localStorage.getItem("yogaregime_whatsapp_gateway_config");
+      if (savedConfig) {
+        setGatewayConfig(JSON.parse(savedConfig));
+      }
+      const savedSentMap = localStorage.getItem("yogaregime_whatsapp_sent_records");
+      if (savedSentMap) {
+        setSentSuccessMap(JSON.parse(savedSentMap));
+      }
+    } catch (e) {}
+  }, []);
+
   // 1. Check & validate existing session with Firebase Auth on mount
   useEffect(() => {
     let isMounted = true;
     async function checkAuth() {
-      // First check local cache for fast UI paint
       const cached = getCurrentAdminUser();
       if (cached && isMounted) {
         setCurrentUser(cached);
       }
       
-      // Then validate live against Firebase Authentication
       try {
         const validated = await validateAdminSession();
         if (isMounted) {
@@ -114,17 +152,14 @@ export default function AdminPage() {
     }
 
     setDataLoading(true);
+
     const unsubscribe = subscribeToTransactions(
       (list) => {
-        setTransactions(list);
+        setTransactions(list || []);
         setDataLoading(false);
       },
       (err) => {
-        console.warn("Real-time listener fallback:", err);
-        getTransactionsList().then((list) => {
-          setTransactions(list);
-          setDataLoading(false);
-        });
+        console.warn("Real-time listener warning:", err);
       }
     );
 
@@ -196,13 +231,127 @@ export default function AdminPage() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      const list = await getTransactionsList();
-      setTransactions(list);
+      const res = await getTransactionsList();
+      setTransactions(res.data || []);
     } catch (err) {
       console.error("Refresh error:", err);
     } finally {
       setRefreshing(false);
     }
+  };
+
+  // Create Sample / Test Transaction
+  const handleCreateTestTx = async () => {
+    setCreatingTest(true);
+    setStatusMessage(null);
+    try {
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      const testRegData = {
+        fullName: `Demo Attendee ${randomSuffix}`,
+        email: `attendee_${randomSuffix}@example.com`,
+        countryCode: "+91",
+        whatsappNumber: `98765${randomSuffix}`,
+      };
+      const testPayData = {
+        razorpay_payment_id: `pay_test_${Date.now().toString(36)}_${randomSuffix}`,
+        razorpay_order_id: `order_test_${Date.now().toString(36)}`,
+      };
+
+      const result = await saveTransaction(testRegData, testPayData);
+      if (result.success) {
+        setStatusMessage({
+          type: "success",
+          text: `Test transaction saved successfully! (ID: ${result.id})`,
+        });
+        const refreshed = await getTransactionsList();
+        setTransactions(refreshed.data || []);
+      } else {
+        setStatusMessage({
+          type: "error",
+          text: `Firestore Error: ${result.error || "Could not write record"}`,
+        });
+      }
+    } catch (e) {
+      setStatusMessage({ type: "error", text: e.message });
+    } finally {
+      setCreatingTest(false);
+      setTimeout(() => setStatusMessage(null), 6000);
+    }
+  };
+
+  // Delete a transaction permanently from Firebase
+  const handleDelete = async (tx) => {
+    if (!window.confirm(`Are you sure you want to permanently delete the registration record for "${tx.fullName}" from Firebase?`)) {
+      return;
+    }
+
+    try {
+      setStatusMessage({ type: "info", text: `Deleting record for ${tx.fullName} from Firebase...` });
+      
+      const res = await deleteTransaction(tx);
+      
+      if (res.success) {
+        setTransactions((prev) =>
+          prev.filter((item) => (item.id || item.paymentId) !== (tx.id || tx.paymentId))
+        );
+        if (selectedTx && (selectedTx.id === tx.id || selectedTx.paymentId === tx.paymentId)) {
+          setSelectedTx(null);
+        }
+        setStatusMessage({ type: "success", text: `Registration permanently deleted from Firebase.` });
+        
+        // Refresh database query to confirm
+        const refreshed = await getTransactionsList();
+        setTransactions(refreshed.data || []);
+      } else {
+        setStatusMessage({ type: "error", text: `Failed to delete: ${res.error || "Unknown error"}` });
+      }
+    } catch (err) {
+      setStatusMessage({ type: "error", text: "Delete error: " + err.message });
+    } finally {
+      setTimeout(() => setStatusMessage(null), 4000);
+    }
+  };
+
+  // Helper to generate clean plain text Event & Transaction WhatsApp message
+  const getAdminWhatsAppMessage = (tx) => {
+    if (!tx) return "";
+    const dateFormatted = tx.dateString || "Saturday, 19 Sept";
+    const timeFormatted = tx.timeString ? ` at ${tx.timeString}` : "";
+    
+    return `WORKSHOP REGISTRATION CONFIRMATION AND ADMISSION PASS
+Yogaregime Live Masterclass
+
+Hello ${tx.fullName || "Attendee"},
+Your registration for the upcoming live online masterclass is confirmed. Below are your event admission and transaction details:
+
+EVENT AND WORKSHOP DETAILS:
+- Workshop: Lock Your Energies, Unlock Your Strength
+- Topic: Bandhas and Nauli Kriya Masterclass
+- Date: Saturday, 19 September
+- Time: 8:00 AM IST (90 Minutes Live Interactive)
+- Mode: Online Live Session
+- Organizer Support: +91 98769 63204
+
+ATTENDEE DETAILS:
+- Name: ${tx.fullName || "N/A"}
+- Email: ${tx.email || "N/A"}
+- WhatsApp: ${tx.countryCode || "+91"} ${tx.whatsappNumber || "N/A"}
+
+TRANSACTION AND PAYMENT DETAILS:
+- Amount Paid: Rs. ${tx.amount || 19} INR
+- Payment Status: Verified and Confirmed (${tx.status || "SUCCESS"})
+- Razorpay Payment ID: ${tx.paymentId || "N/A"}
+- Razorpay Order ID: ${tx.orderId || "N/A"}
+- Registration Date: ${dateFormatted}${timeFormatted}
+
+SESSION GUIDELINES:
+1. Practice on an empty stomach for Bandhas and Nauli.
+2. Wear comfortable yoga attire and keep a yoga mat ready.
+3. Join 5-10 minutes prior to 8:00 AM IST.
+
+The live meeting joining link will be shared prior to the session start.
+
+Yogaregime Team`;
   };
 
   // Copy helper
@@ -211,6 +360,85 @@ export default function AdminPage() {
       navigator.clipboard.writeText(text);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  // Helper to trigger 1-Click Automated WhatsApp delivery via Gateway API
+  const handleAutoSendWhatsApp = async (tx) => {
+    if (!tx) return;
+    const txId = tx.id || tx.paymentId;
+    const attendeePhone = (tx.whatsappNumber || "").replace(/\D/g, "");
+    const countryCode = (tx.countryCode || "+91").replace(/\D/g, "");
+    const fullPhone = `${countryCode}${attendeePhone}`;
+    const message = getAdminWhatsAppMessage(tx);
+
+    setAutoSendingId(txId);
+    setStatusMessage(null);
+
+    try {
+      const res = await fetch("/api/send-whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: fullPhone,
+          message: message,
+          provider: gatewayConfig.provider || "ultramsg",
+          instanceId: gatewayConfig.instanceId || "",
+          apiToken: gatewayConfig.apiToken || "",
+          recipientName: tx.fullName || "Attendee",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        const updatedMap = { ...sentSuccessMap, [txId]: Date.now() };
+        setSentSuccessMap(updatedMap);
+        try {
+          localStorage.setItem("yogaregime_whatsapp_sent_records", JSON.stringify(updatedMap));
+        } catch (e) {}
+
+        setStatusMessage({
+          type: "success",
+          text: `Automated WhatsApp Pass delivered successfully to ${tx.fullName || "Attendee"} (+${fullPhone})!`,
+        });
+      } else if (data.isUnconfigured) {
+        // Gateway not configured yet -> open settings modal and inform admin
+        setShowGatewaySettings(true);
+        setStatusMessage({
+          type: "info",
+          text: "Connect your WhatsApp Gateway (UltraMsg, GreenAPI, or Meta) to enable 100% automated background sending.",
+        });
+      } else {
+        setStatusMessage({
+          type: "error",
+          text: `WhatsApp Gateway Error: ${data.error || "Could not deliver message automatically"}. You can also use the direct WhatsApp link.`,
+        });
+      }
+    } catch (err) {
+      console.error("Auto send error:", err);
+      setStatusMessage({
+        type: "error",
+        text: "Error calling WhatsApp API: " + (err.message || "Network error"),
+      });
+    } finally {
+      setAutoSendingId(null);
+      setTimeout(() => setStatusMessage(null), 6000);
+    }
+  };
+
+  // Save Gateway Settings to localStorage
+  const handleSaveGatewayConfig = (e) => {
+    if (e) e.preventDefault();
+    try {
+      localStorage.setItem("yogaregime_whatsapp_gateway_config", JSON.stringify(gatewayConfig));
+      setStatusMessage({
+        type: "success",
+        text: "WhatsApp Gateway settings saved successfully!",
+      });
+      setShowGatewaySettings(false);
+    } catch (err) {
+      setStatusMessage({ type: "error", text: "Could not save settings: " + err.message });
     }
   };
 
@@ -310,7 +538,6 @@ export default function AdminPage() {
     const formatAsTextCell = (str) => `="\t${String(str ?? "").replace(/"/g, '""')}"`;
 
     const rows = filteredTransactions.map((tx, idx) => {
-      // 1. Format Date cleanly
       let dateVal = tx.dateString || "";
       let timeVal = tx.timeString || "";
 
@@ -357,7 +584,6 @@ export default function AdminPage() {
 
     const csvContent = [headers.join(","), ...rows.map((e) => e.join(","))].join("\r\n");
 
-    // Add UTF-8 BOM so Excel opens with correct characters and structure
     const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -387,12 +613,11 @@ export default function AdminPage() {
   }
 
   // -------------------------------------------------------------
-  // 1. LOGIN & AUTHENTICATION SCREEN (Direct Firebase Validation)
+  // 1. LOGIN & AUTHENTICATION SCREEN
   // -------------------------------------------------------------
   if (!currentUser) {
     return (
       <div className="min-h-screen bg-wellness-bg relative overflow-hidden flex items-center justify-center p-4">
-        {/* Background Ambient Elements */}
         <div className="absolute inset-0 bg-ambient-pattern pointer-events-none z-0" />
         <div className="absolute -top-32 -left-32 w-80 h-80 bg-wellness-gold/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/2 -right-32 w-80 h-80 bg-wellness-primary/10 rounded-full blur-3xl pointer-events-none" />
@@ -409,7 +634,7 @@ export default function AdminPage() {
             </p>
             <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/40 text-[10px] text-emerald-200 border border-emerald-400/30">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Firebase Auth Project: {firebaseConfig.projectId}</span>
+              <span>Firebase Project: {firebaseConfig.projectId}</span>
             </div>
           </div>
 
@@ -483,7 +708,7 @@ export default function AdminPage() {
             {authMode === "register" && (
               <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-800 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>Enter your email and a password (min 6 chars) to create and validate your Admin account with Firebase.</span>
+                <span>Enter your email and password (min 6 chars) to register and validate with Firebase.</span>
               </div>
             )}
 
@@ -644,6 +869,30 @@ export default function AdminPage() {
             </Link>
 
             <button
+              onClick={() => setShowGatewaySettings(true)}
+              title="Configure Automated WhatsApp API Gateway"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-800 transition-all cursor-pointer"
+            >
+              <Zap className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">Auto WhatsApp</span>
+              <Settings className="w-3 h-3 text-emerald-600 opacity-70" />
+            </button>
+
+            <button
+              onClick={handleCreateTestTx}
+              disabled={creatingTest}
+              title="Add a sample booking to test Firestore"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-wellness-primary/30 bg-wellness-emeraldBg hover:bg-wellness-primary/10 text-xs font-bold text-wellness-primary transition-all cursor-pointer"
+            >
+              {creatingTest ? (
+                <div className="w-3.5 h-3.5 border-2 border-wellness-primary border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Database className="w-3.5 h-3.5" />
+              )}
+              <span>{creatingTest ? "Saving..." : "Test Record"}</span>
+            </button>
+
+            <button
               onClick={handleRefresh}
               disabled={refreshing}
               title="Refresh Data"
@@ -672,6 +921,35 @@ export default function AdminPage() {
 
       {/* Main Dashboard Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-6 space-y-6">
+        
+        {/* Status Toast Notification */}
+        {statusMessage && (
+          <div
+            className={`p-4 rounded-2xl border flex items-start gap-3 shadow-md animate-fade-in ${
+              statusMessage.type === "success"
+                ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                : "bg-red-50 border-red-300 text-red-900"
+            }`}
+          >
+            {statusMessage.type === "success" ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1 text-xs sm:text-sm font-medium">
+              {statusMessage.text}
+            </div>
+            <button
+              onClick={() => setStatusMessage(null)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+
+
         {/* Metric Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Registrations */}
@@ -839,7 +1117,7 @@ export default function AdminPage() {
               </p>
             </div>
           ) : filteredTransactions.length === 0 ? (
-            <div className="p-12 text-center space-y-2">
+            <div className="p-12 text-center space-y-3">
               <div className="w-12 h-12 rounded-full bg-wellness-surface flex items-center justify-center mx-auto text-wellness-muted">
                 <Search className="w-6 h-6" />
               </div>
@@ -851,6 +1129,16 @@ export default function AdminPage() {
                   ? "Try clearing your search query or date filters."
                   : "Successful workshop payment transactions will automatically appear here date-wise in real time."}
               </p>
+              <div className="pt-2">
+                <button
+                  onClick={handleCreateTestTx}
+                  disabled={creatingTest}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+                >
+                  <Database className="w-4 h-4" />
+                  <span>{creatingTest ? "Creating Test..." : "Generate Test Booking"}</span>
+                </button>
+              </div>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -872,12 +1160,12 @@ export default function AdminPage() {
                     const attendeeNumber = (tx.whatsappNumber || "").replace(/\D/g, "");
                     const fullContactNumber = `${(tx.countryCode || "+91").replace(/\D/g, "")}${attendeeNumber}`;
                     const whatsappDirectUrl = `https://wa.me/${fullContactNumber}?text=${encodeURIComponent(
-                      `Hello ${tx.fullName},\nYour registration for the Bandhas & Nauli Kriya Workshop is confirmed! (Payment ID: ${tx.paymentId})`
+                      getAdminWhatsAppMessage(tx)
                     )}`;
 
                     return (
                       <tr
-                        key={tx.id || idx}
+                        key={tx.id || tx.paymentId || idx}
                         className="hover:bg-wellness-cream/40 transition-colors"
                       >
                         <td className="py-3.5 px-4 font-mono text-wellness-muted text-[11px]">
@@ -917,11 +1205,11 @@ export default function AdminPage() {
                               {tx.paymentId}
                             </span>
                             <button
-                              onClick={() => handleCopy(tx.paymentId, tx.id)}
+                              onClick={() => handleCopy(tx.paymentId, tx.id || tx.paymentId)}
                               className="text-wellness-muted hover:text-wellness-primary p-1 cursor-pointer"
                               title="Copy Payment ID"
                             >
-                              {copiedId === tx.id ? (
+                              {copiedId === (tx.id || tx.paymentId) ? (
                                 <Check className="w-3.5 h-3.5 text-emerald-600" />
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
@@ -937,13 +1225,43 @@ export default function AdminPage() {
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            {/* Direct WhatsApp Chat */}
+                            {/* 1-Click Automated WhatsApp Send Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleAutoSendWhatsApp(tx)}
+                              disabled={autoSendingId === (tx.id || tx.paymentId)}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all shadow-sm cursor-pointer ${
+                                sentSuccessMap[tx.id || tx.paymentId]
+                                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                  : "bg-[#25D366] hover:bg-[#20bd5a] text-white"
+                              } disabled:opacity-50`}
+                              title="Send WhatsApp confirmation automatically via API without typing"
+                            >
+                              {autoSendingId === (tx.id || tx.paymentId) ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <span className="hidden xl:inline">Sending...</span>
+                                </>
+                              ) : sentSuccessMap[tx.id || tx.paymentId] ? (
+                                <>
+                                  <CheckCheck className="w-3.5 h-3.5" />
+                                  <span className="hidden xl:inline">Sent</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Zap className="w-3.5 h-3.5" />
+                                  <span>Auto Send</span>
+                                </>
+                              )}
+                            </button>
+
+                            {/* Direct WhatsApp Chat Fallback */}
                             <a
                               href={whatsappDirectUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors"
-                              title="Chat on WhatsApp"
+                              title="Open in WhatsApp Web"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
                             </a>
@@ -954,6 +1272,15 @@ export default function AdminPage() {
                               className="px-2.5 py-1.5 rounded-lg bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark border border-wellness-border text-[11px] font-semibold transition-colors cursor-pointer"
                             >
                               Details
+                            </button>
+
+                            {/* Delete Option */}
+                            <button
+                              onClick={() => handleDelete(tx)}
+                              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer"
+                              title="Delete transaction"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
@@ -980,7 +1307,7 @@ export default function AdminPage() {
                   Transaction Receipt
                 </span>
                 <h3 className="text-lg font-bold font-serif leading-tight">
-                  Registration #{selectedTx.id?.slice(0, 8)}
+                  Registration #{selectedTx.id?.slice(0, 8) || selectedTx.paymentId?.slice(0, 8)}
                 </h3>
               </div>
               <button
@@ -1043,26 +1370,204 @@ export default function AdminPage() {
 
               {/* Action Buttons */}
               <div className="space-y-2 pt-1">
+                {/* 1-Click Automated WhatsApp Send Button */}
+                <button
+                  type="button"
+                  onClick={() => handleAutoSendWhatsApp(selectedTx)}
+                  disabled={autoSendingId === (selectedTx.id || selectedTx.paymentId)}
+                  className={`w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all text-center cursor-pointer ${
+                    sentSuccessMap[selectedTx.id || selectedTx.paymentId]
+                      ? "bg-emerald-700 hover:bg-emerald-800 text-white"
+                      : "bg-[#25D366] hover:bg-[#20bd5a] text-white"
+                  } disabled:opacity-60`}
+                >
+                  {autoSendingId === (selectedTx.id || selectedTx.paymentId) ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Sending Automated WhatsApp Pass...</span>
+                    </>
+                  ) : sentSuccessMap[selectedTx.id || selectedTx.paymentId] ? (
+                    <>
+                      <CheckCheck className="w-4 h-4" />
+                      <span>Pass Sent Successfully! (Click to Resend)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 text-amber-200 animate-pulse" />
+                      <span>⚡ 1-Click Auto-Send WhatsApp Pass</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Direct WhatsApp Web Fallback */}
                 <a
                   href={`https://wa.me/${(selectedTx.countryCode || "+91").replace(/\D/g, "")}${(selectedTx.whatsappNumber || "").replace(/\D/g, "")}?text=${encodeURIComponent(
-                    `Hello ${selectedTx.fullName},\nThis is the Coordinator confirming your registration for the Bandhas & Nauli Kriya Workshop on Saturday, 19 Sept at 8:00 AM IST.\nPayment ID: ${selectedTx.paymentId}`
+                    getAdminWhatsAppMessage(selectedTx)
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow transition-all"
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark font-semibold text-xs border border-wellness-border transition-colors text-center"
                 >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Message Attendee on WhatsApp</span>
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Open & Send in WhatsApp Web (Manual)</span>
+                  <ExternalLink className="w-3 h-3 opacity-60" />
                 </a>
 
                 <button
-                  onClick={() => setSelectedTx(null)}
-                  className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition-colors cursor-pointer"
+                  type="button"
+                  onClick={() => handleCopy(getAdminWhatsAppMessage(selectedTx), "modal_msg")}
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark text-xs font-semibold border border-wellness-border transition-colors cursor-pointer"
                 >
-                  Close
+                  {copiedId === "modal_msg" ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>WhatsApp Confirmation Message Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-wellness-muted" />
+                      <span>Copy Full WhatsApp Confirmation Text</span>
+                    </>
+                  )}
                 </button>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleDelete(selectedTx)}
+                    className="flex-1 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 font-semibold text-xs border border-red-200 transition-colors cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Record</span>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedTx(null)}
+                    className="flex-1 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 4. WHATSAPP AUTOMATION GATEWAY CONFIGURATION MODAL */}
+      {/* ------------------------------------------------------------- */}
+      {showGatewaySettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-wellness-dark/75 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-lg my-6 bg-white rounded-3xl shadow-2xl border border-wellness-border overflow-hidden animate-fade-up">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-wellness-primaryDark to-wellness-primary p-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base font-serif leading-tight">
+                    WhatsApp Automation Setup
+                  </h3>
+                  <p className="text-xs text-wellness-goldLight">
+                    Enable 1-click automatic background delivery
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowGatewaySettings(false)}
+                className="p-1.5 rounded-full hover:bg-white/20 transition-colors text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleSaveGatewayConfig} className="p-5 sm:p-6 space-y-4 text-xs sm:text-sm">
+              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs space-y-1.5">
+                <div className="font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>How to connect your WhatsApp Gateway:</span>
+                </div>
+                <p className="text-emerald-800">
+                  1. Sign up on <a href="https://ultramsg.com" target="_blank" rel="noopener noreferrer" className="font-bold underline">UltraMsg.com</a> or <a href="https://green-api.com" target="_blank" rel="noopener noreferrer" className="font-bold underline">Green-API.com</a> (Free trial available).
+                </p>
+                <p className="text-emerald-800">
+                  2. Scan the QR code once with your WhatsApp phone.
+                </p>
+                <p className="text-emerald-800">
+                  3. Paste your <strong>Instance ID</strong> and <strong>Token</strong> below. That&apos;s all!
+                </p>
+              </div>
+
+              {/* Provider Selection */}
+              <div className="space-y-1">
+                <label className="block font-bold text-wellness-dark text-xs uppercase tracking-wider">
+                  Select Gateway Provider
+                </label>
+                <select
+                  value={gatewayConfig.provider}
+                  onChange={(e) =>
+                    setGatewayConfig({ ...gatewayConfig, provider: e.target.value })
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface text-wellness-dark font-medium focus:outline-none focus:ring-2 focus:ring-wellness-primary/20"
+                >
+                  <option value="ultramsg">UltraMsg (Recommended • 2-Minute QR Scan Setup)</option>
+                  <option value="greenapi">Green-API (QR Scan Setup)</option>
+                  <option value="meta">Meta Official WhatsApp Cloud API</option>
+                </select>
+              </div>
+
+              {/* Instance ID */}
+              <div className="space-y-1">
+                <label className="block font-bold text-wellness-dark text-xs uppercase tracking-wider">
+                  Instance ID / Phone ID
+                </label>
+                <input
+                  type="text"
+                  value={gatewayConfig.instanceId}
+                  onChange={(e) =>
+                    setGatewayConfig({ ...gatewayConfig, instanceId: e.target.value.trim() })
+                  }
+                  placeholder="e.g. instance102938"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface font-mono text-xs focus:outline-none focus:ring-2 focus:ring-wellness-primary/20"
+                />
+              </div>
+
+              {/* API Token */}
+              <div className="space-y-1">
+                <label className="block font-bold text-wellness-dark text-xs uppercase tracking-wider">
+                  API Token / Secret Key
+                </label>
+                <input
+                  type="password"
+                  value={gatewayConfig.apiToken}
+                  onChange={(e) =>
+                    setGatewayConfig({ ...gatewayConfig, apiToken: e.target.value.trim() })
+                  }
+                  placeholder="Paste your API Token here"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface font-mono text-xs focus:outline-none focus:ring-2 focus:ring-wellness-primary/20"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-3 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white font-bold text-xs sm:text-sm shadow transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save Gateway Settings</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowGatewaySettings(false)}
+                  className="px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
