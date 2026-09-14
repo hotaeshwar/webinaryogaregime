@@ -92,30 +92,6 @@ export default function AdminPage() {
   const [selectedTx, setSelectedTx] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
-  // Automated WhatsApp Dispatch States
-  const [autoSendingId, setAutoSendingId] = useState(null);
-  const [sentSuccessMap, setSentSuccessMap] = useState({});
-  const [showGatewaySettings, setShowGatewaySettings] = useState(false);
-  const [gatewayConfig, setGatewayConfig] = useState({
-    provider: "ultramsg",
-    instanceId: "",
-    apiToken: "",
-  });
-
-  // Load saved gateway settings from localStorage on client
-  useEffect(() => {
-    try {
-      const savedConfig = localStorage.getItem("yogaregime_whatsapp_gateway_config");
-      if (savedConfig) {
-        setGatewayConfig(JSON.parse(savedConfig));
-      }
-      const savedSentMap = localStorage.getItem("yogaregime_whatsapp_sent_records");
-      if (savedSentMap) {
-        setSentSuccessMap(JSON.parse(savedSentMap));
-      }
-    } catch (e) {}
-  }, []);
-
   // 1. Check & validate existing session with Firebase Auth on mount
   useEffect(() => {
     let isMounted = true;
@@ -391,104 +367,6 @@ Yogaregime Team`;
       navigator.clipboard.writeText(text);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
-    }
-  };
-
-  // Helper to trigger 1-Click Automated WhatsApp delivery via Gateway API
-  const handleAutoSendWhatsApp = async (tx) => {
-    if (!tx) return;
-    const txId = tx.id || tx.paymentId;
-    const attendeePhone = (tx.whatsappNumber || "").replace(/\D/g, "");
-    const countryCode = (tx.countryCode || "+91").replace(/\D/g, "");
-    const fullPhone = `${countryCode}${attendeePhone}`;
-    const message = getAdminWhatsAppMessage(tx);
-
-    setAutoSendingId(txId);
-    setStatusMessage(null);
-
-    try {
-      const { provider = "ultramsg", instanceId = "", apiToken = "" } = gatewayConfig;
-
-      if (!instanceId || !apiToken) {
-        setShowGatewaySettings(true);
-        setStatusMessage({
-          type: "info",
-          text: "Please configure your WhatsApp Gateway (Instance ID & Token) to enable 1-click automated sending.",
-        });
-        setAutoSendingId(null);
-        return;
-      }
-
-      let res;
-      let data = {};
-      if (provider === "ultramsg" || provider === "default") {
-        const url = `https://api.ultramsg.com/${instanceId}/messages/chat`;
-        res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            token: apiToken,
-            to: fullPhone,
-            body: message,
-          }),
-        });
-        data = await res.json().catch(() => ({}));
-      } else if (provider === "greenapi") {
-        const url = `https://api.green-api.com/waInstance${instanceId}/sendMessage/${apiToken}`;
-        res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            chatId: `${fullPhone}@c.us`,
-            message: message,
-          }),
-        });
-        data = await res.json().catch(() => ({}));
-      } else {
-        throw new Error("Provider not supported for direct browser calling");
-      }
-
-      if (res && res.ok && (data.sent === "true" || data.sent === true || data.id || data.idMessage)) {
-        const updatedMap = { ...sentSuccessMap, [txId]: Date.now() };
-        setSentSuccessMap(updatedMap);
-        try {
-          localStorage.setItem("yogaregime_whatsapp_sent_records", JSON.stringify(updatedMap));
-        } catch (e) {}
-
-        setStatusMessage({
-          type: "success",
-          text: `Automated WhatsApp Pass delivered successfully to ${tx.fullName || "Attendee"} (+${fullPhone})!`,
-        });
-      } else {
-        setStatusMessage({
-          type: "error",
-          text: `WhatsApp Gateway Error: ${data?.error || data?.message || "Could not deliver message automatically"}. You can also use the direct WhatsApp link.`,
-        });
-      }
-    } catch (err) {
-      console.error("Auto send error:", err);
-      setStatusMessage({
-        type: "error",
-        text: "Error calling WhatsApp API: " + (err.message || "Network error"),
-      });
-    } finally {
-      setAutoSendingId(null);
-      setTimeout(() => setStatusMessage(null), 6000);
-    }
-  };
-
-  // Save Gateway Settings to localStorage
-  const handleSaveGatewayConfig = (e) => {
-    if (e) e.preventDefault();
-    try {
-      localStorage.setItem("yogaregime_whatsapp_gateway_config", JSON.stringify(gatewayConfig));
-      setStatusMessage({
-        type: "success",
-        text: "WhatsApp Gateway settings saved successfully!",
-      });
-      setShowGatewaySettings(false);
-    } catch (err) {
-      setStatusMessage({ type: "error", text: "Could not save settings: " + err.message });
     }
   };
 
@@ -918,15 +796,7 @@ Yogaregime Team`;
               <ExternalLink className="w-3.5 h-3.5 text-wellness-primary" />
             </Link>
 
-            <button
-              onClick={() => setShowGatewaySettings(true)}
-              title="Configure Automated WhatsApp API Gateway"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-50 hover:bg-emerald-100 text-xs font-bold text-emerald-800 transition-all cursor-pointer"
-            >
-              <Zap className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden sm:inline">Auto WhatsApp</span>
-              <Settings className="w-3 h-3 text-emerald-600 opacity-70" />
-            </button>
+
 
             <button
               onClick={handleCreateTestTx}
@@ -1289,45 +1159,16 @@ Yogaregime Team`;
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            {/* 1-Click Automated WhatsApp Send Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleAutoSendWhatsApp(tx)}
-                              disabled={autoSendingId === (tx.id || tx.paymentId)}
-                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all shadow-sm cursor-pointer ${
-                                sentSuccessMap[tx.id || tx.paymentId]
-                                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                  : "bg-[#25D366] hover:bg-[#20bd5a] text-white"
-                              } disabled:opacity-50`}
-                              title="Send WhatsApp confirmation automatically via API without typing"
-                            >
-                              {autoSendingId === (tx.id || tx.paymentId) ? (
-                                <>
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  <span className="hidden xl:inline">Sending...</span>
-                                </>
-                              ) : sentSuccessMap[tx.id || tx.paymentId] ? (
-                                <>
-                                  <CheckCheck className="w-3.5 h-3.5" />
-                                  <span className="hidden xl:inline">Sent</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Zap className="w-3.5 h-3.5" />
-                                  <span>Auto Send</span>
-                                </>
-                              )}
-                            </button>
-
-                            {/* Direct WhatsApp Chat Fallback */}
+                            {/* Direct WhatsApp Chat Link */}
                             <a
                               href={whatsappDirectUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors"
-                              title="Open in WhatsApp Web"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition-colors"
+                              title="Open WhatsApp chat with prefilled confirmation"
                             >
-                              <MessageCircle className="w-3.5 h-3.5" />
+                              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>WhatsApp</span>
                             </a>
 
                             {/* View Full Modal */}
@@ -1434,47 +1275,18 @@ Yogaregime Team`;
 
               {/* Action Buttons */}
               <div className="space-y-2 pt-1">
-                {/* 1-Click Automated WhatsApp Send Button */}
-                <button
-                  type="button"
-                  onClick={() => handleAutoSendWhatsApp(selectedTx)}
-                  disabled={autoSendingId === (selectedTx.id || selectedTx.paymentId)}
-                  className={`w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all text-center cursor-pointer ${
-                    sentSuccessMap[selectedTx.id || selectedTx.paymentId]
-                      ? "bg-emerald-700 hover:bg-emerald-800 text-white"
-                      : "bg-[#25D366] hover:bg-[#20bd5a] text-white"
-                  } disabled:opacity-60`}
-                >
-                  {autoSendingId === (selectedTx.id || selectedTx.paymentId) ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Sending Automated WhatsApp Pass...</span>
-                    </>
-                  ) : sentSuccessMap[selectedTx.id || selectedTx.paymentId] ? (
-                    <>
-                      <CheckCheck className="w-4 h-4" />
-                      <span>Pass Sent Successfully! (Click to Resend)</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4 text-amber-200 animate-pulse" />
-                      <span>⚡ 1-Click Auto-Send WhatsApp Pass</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Direct WhatsApp Web Fallback */}
+                {/* Direct WhatsApp Web Link */}
                 <a
                   href={`https://wa.me/${(selectedTx.countryCode || "+91").replace(/\D/g, "")}${(selectedTx.whatsappNumber || "").replace(/\D/g, "")}?text=${encodeURIComponent(
                     getAdminWhatsAppMessage(selectedTx)
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark font-semibold text-xs border border-wellness-border transition-colors text-center"
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow-md transition-all text-center"
                 >
-                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Open & Send in WhatsApp Web (Manual)</span>
-                  <ExternalLink className="w-3 h-3 opacity-60" />
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Send WhatsApp Confirmation</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-75" />
                 </a>
 
                 <button
@@ -1517,124 +1329,7 @@ Yogaregime Team`;
         </div>
       )}
 
-      {/* ------------------------------------------------------------- */}
-      {/* 4. WHATSAPP AUTOMATION GATEWAY CONFIGURATION MODAL */}
-      {/* ------------------------------------------------------------- */}
-      {showGatewaySettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-wellness-dark/75 backdrop-blur-md animate-fade-in overflow-y-auto">
-          <div className="relative w-full max-w-lg my-6 bg-white rounded-3xl shadow-2xl border border-wellness-border overflow-hidden animate-fade-up">
-            {/* Modal Header */}
-            <div className="bg-gradient-to-r from-wellness-primaryDark to-wellness-primary p-5 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-amber-300" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-base font-serif leading-tight">
-                    WhatsApp Automation Setup
-                  </h3>
-                  <p className="text-xs text-wellness-goldLight">
-                    Enable 1-click automatic background delivery
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowGatewaySettings(false)}
-                className="p-1.5 rounded-full hover:bg-white/20 transition-colors text-white cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Modal Body */}
-            <form onSubmit={handleSaveGatewayConfig} className="p-5 sm:p-6 space-y-4 text-xs sm:text-sm">
-              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs space-y-1.5">
-                <div className="font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
-                  <span>How to connect your WhatsApp Gateway:</span>
-                </div>
-                <p className="text-emerald-800">
-                  1. Sign up on <a href="https://ultramsg.com" target="_blank" rel="noopener noreferrer" className="font-bold underline">UltraMsg.com</a> or <a href="https://green-api.com" target="_blank" rel="noopener noreferrer" className="font-bold underline">Green-API.com</a> (Free trial available).
-                </p>
-                <p className="text-emerald-800">
-                  2. Scan the QR code once with your WhatsApp phone.
-                </p>
-                <p className="text-emerald-800">
-                  3. Paste your <strong>Instance ID</strong> and <strong>Token</strong> below. That&apos;s all!
-                </p>
-              </div>
-
-              {/* Provider Selection */}
-              <div className="space-y-1">
-                <label className="block font-bold text-wellness-dark text-xs uppercase tracking-wider">
-                  Select Gateway Provider
-                </label>
-                <select
-                  value={gatewayConfig.provider}
-                  onChange={(e) =>
-                    setGatewayConfig({ ...gatewayConfig, provider: e.target.value })
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface text-wellness-dark font-medium focus:outline-none focus:ring-2 focus:ring-wellness-primary/20"
-                >
-                  <option value="ultramsg">UltraMsg (Recommended • 2-Minute QR Scan Setup)</option>
-                  <option value="greenapi">Green-API (QR Scan Setup)</option>
-                  <option value="meta">Meta Official WhatsApp Cloud API</option>
-                </select>
-              </div>
-
-              {/* Instance ID */}
-              <div className="space-y-1">
-                <label className="block font-bold text-wellness-dark text-xs uppercase tracking-wider">
-                  Instance ID / Phone ID
-                </label>
-                <input
-                  type="text"
-                  value={gatewayConfig.instanceId}
-                  onChange={(e) =>
-                    setGatewayConfig({ ...gatewayConfig, instanceId: e.target.value.trim() })
-                  }
-                  placeholder="e.g. instance102938"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface font-mono text-xs focus:outline-none focus:ring-2 focus:ring-wellness-primary/20"
-                />
-              </div>
-
-              {/* API Token */}
-              <div className="space-y-1">
-                <label className="block font-bold text-wellness-dark text-xs uppercase tracking-wider">
-                  API Token / Secret Key
-                </label>
-                <input
-                  type="password"
-                  value={gatewayConfig.apiToken}
-                  onChange={(e) =>
-                    setGatewayConfig({ ...gatewayConfig, apiToken: e.target.value.trim() })
-                  }
-                  placeholder="Paste your API Token here"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface font-mono text-xs focus:outline-none focus:ring-2 focus:ring-wellness-primary/20"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2.5 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 py-3 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white font-bold text-xs sm:text-sm shadow transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Save Gateway Settings</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowGatewaySettings(false)}
-                  className="px-4 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
