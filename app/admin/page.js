@@ -376,22 +376,48 @@ Yogaregime Team`;
     setStatusMessage(null);
 
     try {
-      const res = await fetch("/api/send-whatsapp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: fullPhone,
-          message: message,
-          provider: gatewayConfig.provider || "ultramsg",
-          instanceId: gatewayConfig.instanceId || "",
-          apiToken: gatewayConfig.apiToken || "",
-          recipientName: tx.fullName || "Attendee",
-        }),
-      });
+      const { provider = "ultramsg", instanceId = "", apiToken = "" } = gatewayConfig;
 
-      const data = await res.json();
+      if (!instanceId || !apiToken) {
+        setShowGatewaySettings(true);
+        setStatusMessage({
+          type: "info",
+          text: "Please configure your WhatsApp Gateway (Instance ID & Token) to enable 1-click automated sending.",
+        });
+        setAutoSendingId(null);
+        return;
+      }
 
-      if (data.success) {
+      let res;
+      let data = {};
+      if (provider === "ultramsg" || provider === "default") {
+        const url = `https://api.ultramsg.com/${instanceId}/messages/chat`;
+        res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: apiToken,
+            to: fullPhone,
+            body: message,
+          }),
+        });
+        data = await res.json().catch(() => ({}));
+      } else if (provider === "greenapi") {
+        const url = `https://api.green-api.com/waInstance${instanceId}/sendMessage/${apiToken}`;
+        res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chatId: `${fullPhone}@c.us`,
+            message: message,
+          }),
+        });
+        data = await res.json().catch(() => ({}));
+      } else {
+        throw new Error("Provider not supported for direct browser calling");
+      }
+
+      if (res && res.ok && (data.sent === "true" || data.sent === true || data.id || data.idMessage)) {
         const updatedMap = { ...sentSuccessMap, [txId]: Date.now() };
         setSentSuccessMap(updatedMap);
         try {
@@ -402,17 +428,10 @@ Yogaregime Team`;
           type: "success",
           text: `Automated WhatsApp Pass delivered successfully to ${tx.fullName || "Attendee"} (+${fullPhone})!`,
         });
-      } else if (data.isUnconfigured) {
-        // Gateway not configured yet -> open settings modal and inform admin
-        setShowGatewaySettings(true);
-        setStatusMessage({
-          type: "info",
-          text: "Connect your WhatsApp Gateway (UltraMsg, GreenAPI, or Meta) to enable 100% automated background sending.",
-        });
       } else {
         setStatusMessage({
           type: "error",
-          text: `WhatsApp Gateway Error: ${data.error || "Could not deliver message automatically"}. You can also use the direct WhatsApp link.`,
+          text: `WhatsApp Gateway Error: ${data?.error || data?.message || "Could not deliver message automatically"}. You can also use the direct WhatsApp link.`,
         });
       }
     } catch (err) {
