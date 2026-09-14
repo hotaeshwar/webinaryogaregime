@@ -15,6 +15,7 @@ import {
   getTransactionsList,
   saveTransaction,
   deleteTransaction,
+  syncRazorpayToFirestore,
 } from "@/lib/transactionService";
 import {
   Lock,
@@ -77,6 +78,7 @@ export default function AdminPage() {
   const [transactions, setTransactions] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [syncingRazorpay, setSyncingRazorpay] = useState(false);
   const [creatingTest, setCreatingTest] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
@@ -237,6 +239,35 @@ export default function AdminPage() {
       console.error("Refresh error:", err);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  // Sync with Razorpay API directly and persist to Cloud Firestore
+  const handleSyncRazorpay = async () => {
+    setSyncingRazorpay(true);
+    setStatusMessage(null);
+    try {
+      const res = await syncRazorpayToFirestore();
+      const updated = await getTransactionsList();
+      if (updated.data) {
+        setTransactions(updated.data);
+      }
+      setStatusMessage({
+        type: "success",
+        text: res.success
+          ? `Synced ${res.count} transactions from Razorpay into Firestore!`
+          : `Sync completed. Current records: ${updated.data?.length || 0}`,
+      });
+      setTimeout(() => setStatusMessage(null), 6000);
+    } catch (err) {
+      console.error("Sync error:", err);
+      setStatusMessage({
+        type: "error",
+        text: `Sync error: ${err.message || "Failed to connect to Razorpay"}`,
+      });
+      setTimeout(() => setStatusMessage(null), 6000);
+    } finally {
+      setSyncingRazorpay(false);
     }
   };
 
@@ -909,6 +940,20 @@ Yogaregime Team`;
                 <Database className="w-3.5 h-3.5" />
               )}
               <span>{creatingTest ? "Saving..." : "Test Record"}</span>
+            </button>
+
+            <button
+              onClick={handleSyncRazorpay}
+              disabled={syncingRazorpay}
+              title="Fetch all transactions directly from Razorpay & save to Cloud Firestore"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-800 transition-all cursor-pointer shadow-xs"
+            >
+              {syncingRazorpay ? (
+                <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
+              )}
+              <span>{syncingRazorpay ? "Syncing..." : "Sync Razorpay"}</span>
             </button>
 
             <button
