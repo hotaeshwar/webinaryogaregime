@@ -762,31 +762,32 @@ Yogaregime Team`;
   return (
     <div className="min-h-screen bg-wellness-bg flex flex-col">
       {/* Top Navbar */}
-      <header className="bg-white border-b border-wellness-border/80 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
+      <header className="bg-white border-b border-wellness-border/80 sticky top-0 z-30 shadow-xs">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2">
+          {/* Logo & Brand */}
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
             <img
               src="/logo1.png"
               alt="Logo"
-              className="h-10 sm:h-12 w-auto object-contain"
+              className="h-8 sm:h-10 md:h-12 w-auto object-contain shrink-0"
             />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg font-bold text-wellness-dark font-serif leading-tight">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-sm sm:text-base md:text-lg font-bold text-wellness-dark font-serif leading-tight truncate">
                   Admin Dashboard
                 </span>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider border border-emerald-200">
-                  Firebase Validated
+                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider border border-emerald-200 shrink-0">
+                  Firebase Live
                 </span>
               </div>
-              <p className="text-xs text-wellness-muted hidden sm:block">
+              <p className="text-[11px] text-wellness-muted hidden md:block truncate">
                 Real-time Transaction Records & Attendee Directory
               </p>
             </div>
           </div>
 
-          {/* Admin User Info & Actions */}
-          <div className="flex items-center gap-3">
+          {/* Admin Actions */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <Link
               href="/"
               target="_blank"
@@ -796,13 +797,11 @@ Yogaregime Team`;
               <ExternalLink className="w-3.5 h-3.5 text-wellness-primary" />
             </Link>
 
-
-
             <button
               onClick={handleCreateTestTx}
               disabled={creatingTest}
               title="Add a sample booking to test Firestore"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-wellness-primary/30 bg-wellness-emeraldBg hover:bg-wellness-primary/10 text-xs font-bold text-wellness-primary transition-all cursor-pointer"
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-wellness-primary/30 bg-wellness-emeraldBg hover:bg-wellness-primary/10 text-xs font-bold text-wellness-primary transition-all cursor-pointer"
             >
               {creatingTest ? (
                 <div className="w-3.5 h-3.5 border-2 border-wellness-primary border-t-transparent rounded-full animate-spin" />
@@ -812,39 +811,45 @@ Yogaregime Team`;
               <span>{creatingTest ? "Saving..." : "Test Record"}</span>
             </button>
 
+            {/* Sync Razorpay Button */}
             <button
               onClick={handleSyncRazorpay}
               disabled={syncingRazorpay}
               title="Fetch all transactions directly from Razorpay & save to Cloud Firestore"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-50 hover:bg-blue-100 text-xs font-bold text-blue-800 transition-all cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-50 hover:bg-blue-100 text-[11px] sm:text-xs font-bold text-blue-800 transition-all cursor-pointer shadow-xs"
             >
               {syncingRazorpay ? (
                 <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
               )}
-              <span>{syncingRazorpay ? "Syncing..." : "Sync Razorpay"}</span>
+              <span className="hidden sm:inline">{syncingRazorpay ? "Syncing..." : "Sync Razorpay"}</span>
+              <span className="sm:hidden">{syncingRazorpay ? "..." : "Sync"}</span>
             </button>
 
+            {/* Refresh Button */}
             <button
               onClick={handleRefresh}
               disabled={refreshing}
               title="Refresh Data"
-              className="p-2 rounded-xl border border-wellness-border bg-white hover:bg-wellness-surface text-wellness-dark transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl border border-wellness-border bg-white hover:bg-wellness-surface text-wellness-dark transition-colors cursor-pointer"
             >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin text-wellness-primary" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? "animate-spin text-wellness-primary" : ""}`} />
             </button>
 
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-wellness-surface border border-wellness-border text-xs text-wellness-dark">
+            {/* Admin User Info */}
+            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-wellness-surface border border-wellness-border text-xs text-wellness-dark">
               <User className="w-3.5 h-3.5 text-wellness-primary" />
-              <span className="font-medium truncate max-w-[160px]">
+              <span className="font-medium truncate max-w-[140px]">
                 {currentUser.email}
               </span>
             </div>
 
+            {/* Sign Out Button */}
             <button
               onClick={handleLogout}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold border border-red-200 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-[11px] sm:text-xs font-semibold border border-red-200 transition-colors cursor-pointer"
+              title="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Sign Out</span>
@@ -854,21 +859,21 @@ Yogaregime Team`;
       </header>
 
       {/* Main Dashboard Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
         
         {/* Status Toast Notification */}
         {statusMessage && (
           <div
-            className={`p-4 rounded-2xl border flex items-start gap-3 shadow-md animate-fade-in ${
+            className={`p-3.5 sm:p-4 rounded-2xl border flex items-start gap-2.5 sm:gap-3 shadow-md animate-fade-in ${
               statusMessage.type === "success"
                 ? "bg-emerald-50 border-emerald-300 text-emerald-900"
                 : "bg-red-50 border-red-300 text-red-900"
             }`}
           >
             {statusMessage.type === "success" ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0 mt-0.5" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 shrink-0 mt-0.5" />
             )}
             <div className="flex-1 text-xs sm:text-sm font-medium">
               {statusMessage.text}
@@ -882,89 +887,87 @@ Yogaregime Team`;
           </div>
         )}
 
-
-
-        {/* Metric Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Metric Summary Cards (2 cols on mobile, 4 cols on desktop) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {/* Card 1: Total Registrations */}
-          <div className="bg-white p-5 rounded-2xl border border-wellness-border shadow-sm flex items-center justify-between">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-wellness-border shadow-xs flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-wellness-muted uppercase tracking-wider">
-                Total Registrations
+              <p className="text-[10px] sm:text-xs font-bold text-wellness-muted uppercase tracking-wider">
+                Registrations
               </p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-wellness-dark mt-1 font-mono">
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-wellness-dark mt-0.5 sm:mt-1 font-mono">
                 {metrics.totalCount}
               </h3>
-              <p className="text-[11px] text-emerald-600 font-medium mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                Verified in Firestore
+              <p className="text-[10px] sm:text-[11px] text-emerald-600 font-medium mt-0.5 sm:mt-1 flex items-center gap-1">
+                <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <span>Firestore Live</span>
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700">
-              <Users className="w-6 h-6" />
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+              <Users className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
 
           {/* Card 2: Total Revenue */}
-          <div className="bg-white p-5 rounded-2xl border border-wellness-border shadow-sm flex items-center justify-between">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-wellness-border shadow-xs flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-wellness-muted uppercase tracking-wider">
-                Total Revenue
+              <p className="text-[10px] sm:text-xs font-bold text-wellness-muted uppercase tracking-wider">
+                Revenue
               </p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-wellness-primary mt-1 font-mono">
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-wellness-primary mt-0.5 sm:mt-1 font-mono">
                 ₹{metrics.totalRevenue}
               </h3>
-              <p className="text-[11px] text-wellness-muted font-medium mt-1">
-                ₹19 Token Fee per attendee
+              <p className="text-[10px] sm:text-[11px] text-wellness-muted font-medium mt-0.5 sm:mt-1 truncate">
+                ₹19 token fee
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700">
-              <IndianRupee className="w-6 h-6" />
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+              <IndianRupee className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
 
           {/* Card 3: Today's Registrations */}
-          <div className="bg-white p-5 rounded-2xl border border-wellness-border shadow-sm flex items-center justify-between">
+          <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-wellness-border shadow-xs flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-wellness-muted uppercase tracking-wider">
+              <p className="text-[10px] sm:text-xs font-bold text-wellness-muted uppercase tracking-wider">
                 Today&apos;s Bookings
               </p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-wellness-dark mt-1 font-mono">
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-wellness-dark mt-0.5 sm:mt-1 font-mono">
                 {metrics.todayCount}
               </h3>
-              <p className="text-[11px] text-wellness-muted font-medium mt-1">
-                Registered in last 24h
+              <p className="text-[10px] sm:text-[11px] text-wellness-muted font-medium mt-0.5 sm:mt-1 truncate">
+                Last 24 hours
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700">
-              <Calendar className="w-6 h-6" />
+            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700 shrink-0">
+              <Calendar className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
 
           {/* Card 4: Workshop Schedule */}
-          <div className="bg-gradient-to-br from-wellness-primaryDark to-wellness-primary p-5 rounded-2xl text-white shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-wellness-goldLight uppercase tracking-wider">
-                Next Masterclass
+          <div className="bg-gradient-to-br from-wellness-primaryDark to-wellness-primary p-3.5 sm:p-5 rounded-2xl text-white shadow-xs flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-bold text-wellness-goldLight uppercase tracking-wider truncate">
+                Masterclass
               </p>
-              <h3 className="text-base sm:text-lg font-bold font-serif mt-1">
+              <h3 className="text-sm sm:text-base lg:text-lg font-bold font-serif mt-0.5 sm:mt-1 truncate">
                 Sat, 19 Sept
               </h3>
-              <p className="text-[11px] text-gray-200 mt-0.5 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-wellness-goldLight" />
-                8:00 AM IST • 90 Min Live
+              <p className="text-[10px] sm:text-[11px] text-gray-200 mt-0.5 flex items-center gap-1 truncate">
+                <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-wellness-goldLight shrink-0" />
+                <span>8:00 AM IST</span>
               </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-wellness-goldLight">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-wellness-goldLight shrink-0">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
         </div>
 
         {/* Filter, Search & Export Bar */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-wellness-border shadow-sm flex flex-col md:flex-row gap-3.5 items-stretch md:items-center justify-between">
+        <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-wellness-border shadow-xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
           {/* Search Box */}
-          <div className="relative flex-1 min-w-[240px]">
+          <div className="relative flex-1 min-w-[200px]">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-wellness-muted">
               <Search className="w-4 h-4" />
             </div>
@@ -972,8 +975,8 @@ Yogaregime Team`;
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by name, email, phone, payment ID..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/40 text-wellness-dark text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 focus:border-wellness-primary transition-all"
+              placeholder="Search attendee, email, phone, ID..."
+              className="w-full pl-10 pr-4 py-2 sm:py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/40 text-wellness-dark text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 focus:border-wellness-primary transition-all"
             />
             {searchQuery && (
               <button
@@ -985,12 +988,12 @@ Yogaregime Team`;
             )}
           </div>
 
-          {/* Date Filter & Sort */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Date Filter & Sort & Export */}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="px-3 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/60 text-xs font-semibold text-wellness-dark focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 cursor-pointer"
+              className="px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/60 text-xs font-semibold text-wellness-dark focus:outline-none focus:ring-2 focus:ring-wellness-primary/20 cursor-pointer"
             >
               <option value="all">All Dates</option>
               <option value="today">Today Only</option>
@@ -1003,24 +1006,24 @@ Yogaregime Team`;
                 type="date"
                 value={customDate}
                 onChange={(e) => setCustomDate(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-wellness-border bg-wellness-surface/60 text-xs font-semibold text-wellness-dark focus:outline-none"
+                className="px-2 sm:px-3 py-2 rounded-xl border border-wellness-border bg-wellness-surface/60 text-xs font-semibold text-wellness-dark focus:outline-none col-span-2 sm:col-span-1"
               />
             )}
 
             <button
               onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-              className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/60 hover:bg-wellness-border/50 text-xs font-semibold text-wellness-dark transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/60 hover:bg-wellness-border/50 text-xs font-semibold text-wellness-dark transition-colors cursor-pointer"
               title="Toggle Sort Order"
             >
               <ArrowUpDown className="w-3.5 h-3.5 text-wellness-primary" />
-              <span>{sortOrder === "desc" ? "Newest First" : "Oldest First"}</span>
+              <span>{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
             </button>
 
             {/* CSV Export Button */}
             <button
               onClick={handleExportCSV}
               disabled={filteredTransactions.length === 0}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+              className="col-span-2 sm:col-span-1 inline-flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export CSV ({filteredTransactions.length})</span>
@@ -1028,30 +1031,30 @@ Yogaregime Team`;
           </div>
         </div>
 
-        {/* Transactions Table */}
-        <div className="bg-white rounded-2xl border border-wellness-border shadow-sm overflow-hidden">
-          <div className="p-4 sm:px-6 border-b border-wellness-border/80 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-wellness-primary" />
-              <h2 className="text-sm sm:text-base font-bold text-wellness-dark">
-                Date-Wise Transaction Records
+        {/* Transactions Table & Mobile Cards */}
+        <div className="bg-white rounded-2xl border border-wellness-border shadow-xs overflow-hidden">
+          <div className="p-3.5 sm:px-6 border-b border-wellness-border/80 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <FileText className="w-4 h-4 text-wellness-primary shrink-0" />
+              <h2 className="text-xs sm:text-base font-bold text-wellness-dark truncate">
+                Transaction Directory
               </h2>
             </div>
-            <span className="text-xs font-medium text-wellness-muted">
+            <span className="text-[11px] sm:text-xs font-medium text-wellness-muted shrink-0">
               Showing <strong className="text-wellness-dark">{filteredTransactions.length}</strong> of{" "}
-              {transactions.length} records
+              {transactions.length}
             </span>
           </div>
 
           {dataLoading ? (
-            <div className="p-12 text-center space-y-3">
+            <div className="p-10 text-center space-y-3">
               <div className="w-8 h-8 border-3 border-wellness-primary border-t-transparent rounded-full animate-spin mx-auto" />
               <p className="text-xs font-medium text-wellness-muted">
                 Connecting to Firebase Firestore...
               </p>
             </div>
           ) : filteredTransactions.length === 0 ? (
-            <div className="p-12 text-center space-y-3">
+            <div className="p-8 sm:p-12 text-center space-y-3">
               <div className="w-12 h-12 rounded-full bg-wellness-surface flex items-center justify-center mx-auto text-wellness-muted">
                 <Search className="w-6 h-6" />
               </div>
@@ -1061,13 +1064,13 @@ Yogaregime Team`;
               <p className="text-xs text-wellness-muted max-w-sm mx-auto">
                 {searchQuery || dateFilter !== "all"
                   ? "Try clearing your search query or date filters."
-                  : "Successful workshop payment transactions will automatically appear here date-wise in real time."}
+                  : "Successful workshop payment transactions will automatically appear here in real time."}
               </p>
               <div className="pt-2">
                 <button
                   onClick={handleCreateTestTx}
                   disabled={creatingTest}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-wellness-primary hover:bg-wellness-primaryDark text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
                   <Database className="w-4 h-4" />
                   <span>{creatingTest ? "Creating Test..." : "Generate Test Booking"}</span>
@@ -1075,192 +1078,309 @@ Yogaregime Team`;
               </div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-wellness-surface/80 border-b border-wellness-border text-[11px] font-bold text-wellness-dark uppercase tracking-wider">
-                    <th className="py-3 px-4">#</th>
-                    <th className="py-3 px-4">Date & Time</th>
-                    <th className="py-3 px-4">Attendee</th>
-                    <th className="py-3 px-4">WhatsApp / Phone</th>
-                    <th className="py-3 px-4">Amount</th>
-                    <th className="py-3 px-4">Payment ID</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-wellness-border/60 text-xs">
-                  {filteredTransactions.map((tx, idx) => {
-                    const attendeeNumber = (tx.whatsappNumber || "").replace(/\D/g, "");
-                    const fullContactNumber = `${(tx.countryCode || "+91").replace(/\D/g, "")}${attendeeNumber}`;
-                    const whatsappDirectUrl = `https://wa.me/${fullContactNumber}?text=${encodeURIComponent(
-                      getAdminWhatsAppMessage(tx)
-                    )}`;
+            <>
+              {/* 1. MOBILE VIEW: Responsive Cards for Phones & Small Screens (< md) */}
+              <div className="block md:hidden divide-y divide-wellness-border/60">
+                {filteredTransactions.map((tx, idx) => {
+                  const attendeeNumber = (tx.whatsappNumber || "").replace(/\D/g, "");
+                  const fullContactNumber = `${(tx.countryCode || "+91").replace(/\D/g, "")}${attendeeNumber}`;
+                  const whatsappDirectUrl = `https://wa.me/${fullContactNumber}?text=${encodeURIComponent(
+                    getAdminWhatsAppMessage(tx)
+                  )}`;
 
-                    return (
-                      <tr
-                        key={tx.id || tx.paymentId || idx}
-                        className="hover:bg-wellness-cream/40 transition-colors"
-                      >
-                        <td className="py-3.5 px-4 font-mono text-wellness-muted text-[11px]">
-                          {idx + 1}
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-semibold text-wellness-dark">
-                            {tx.dateString || "N/A"}
-                          </div>
-                          <div className="text-[11px] text-wellness-muted font-mono">
-                            {tx.timeString || ""}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="font-bold text-wellness-dark">
-                            {tx.fullName || "N/A"}
-                          </div>
-                          <div className="text-[11px] text-wellness-muted break-all">
-                            {tx.email || "N/A"}
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
+                  return (
+                    <div
+                      key={tx.id || tx.paymentId || idx}
+                      className="p-3.5 space-y-2.5 hover:bg-wellness-cream/20 transition-colors"
+                    >
+                      {/* Top Row: Attendee Name + Status Badge */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-mono font-medium text-wellness-dark">
-                              {tx.countryCode || "+91"} {tx.whatsappNumber || "N/A"}
+                            <span className="text-[10px] font-mono font-bold text-wellness-muted">
+                              #{idx + 1}
                             </span>
+                            <h3 className="font-bold text-wellness-dark text-sm truncate">
+                              {tx.fullName || "N/A"}
+                            </h3>
                           </div>
-                        </td>
-                        <td className="py-3.5 px-4">
+                          <p className="text-[11px] text-wellness-muted truncate break-all">
+                            {tx.email || "No email"}
+                          </p>
+                        </div>
+                        <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60">
+                          <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                          {tx.status || "PAID"}
+                        </span>
+                      </div>
+
+                      {/* Middle Grid: Date, Phone, Amount */}
+                      <div className="grid grid-cols-2 gap-2 bg-wellness-surface/60 rounded-xl p-2.5 text-xs border border-wellness-border/50">
+                        <div>
+                          <span className="text-[9px] uppercase font-bold text-wellness-muted block tracking-wider">
+                            Date & Time
+                          </span>
+                          <span className="font-semibold text-wellness-dark text-[11px] block truncate">
+                            {tx.dateString || "N/A"}
+                          </span>
+                          <span className="text-[10px] text-wellness-muted block font-mono">
+                            {tx.timeString || ""}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] uppercase font-bold text-wellness-muted block tracking-wider">
+                            Amount Paid
+                          </span>
                           <span className="font-extrabold text-wellness-primary font-mono text-sm">
                             ₹{tx.amount || 19}
                           </span>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1">
-                            <span className="font-mono text-[11px] text-wellness-dark max-w-[120px] truncate">
-                              {tx.paymentId}
-                            </span>
-                            <button
-                              onClick={() => handleCopy(tx.paymentId, tx.id || tx.paymentId)}
-                              className="text-wellness-muted hover:text-wellness-primary p-1 cursor-pointer"
-                              title="Copy Payment ID"
-                            >
-                              {copiedId === (tx.id || tx.paymentId) ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5" />
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            {tx.status || "SUCCESS"}
+                          <span className="text-[10px] text-emerald-700 block font-medium">
+                            {tx.countryCode || "+91"} {attendeeNumber}
                           </span>
-                        </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {/* Direct WhatsApp Chat Link */}
-                            <a
-                              href={whatsappDirectUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition-colors"
-                              title="Open WhatsApp chat with prefilled confirmation"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>WhatsApp</span>
-                            </a>
+                        </div>
+                      </div>
 
-                            {/* View Full Modal */}
-                            <button
-                              onClick={() => setSelectedTx(tx)}
-                              className="px-2.5 py-1.5 rounded-lg bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark border border-wellness-border text-[11px] font-semibold transition-colors cursor-pointer"
-                            >
-                              Details
-                            </button>
+                      {/* Payment ID with copy */}
+                      <div className="flex items-center justify-between text-[10px] sm:text-[11px] bg-gray-50/80 rounded-lg px-2.5 py-1.5 border border-gray-200/80">
+                        <span className="text-wellness-muted font-mono truncate max-w-[200px]">
+                          {tx.paymentId}
+                        </span>
+                        <button
+                          onClick={() => handleCopy(tx.paymentId, tx.id || tx.paymentId)}
+                          className="text-wellness-primary font-bold hover:underline flex items-center gap-1 shrink-0 ml-2 cursor-pointer"
+                        >
+                          {copiedId === (tx.id || tx.paymentId) ? (
+                            <span className="text-emerald-600 flex items-center gap-0.5">
+                              <Check className="w-3 h-3" /> Copied
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-0.5">
+                              <Copy className="w-3 h-3" /> Copy ID
+                            </span>
+                          )}
+                        </button>
+                      </div>
 
-                            {/* Delete Option */}
-                            <button
-                              onClick={() => handleDelete(tx)}
-                              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer"
-                              title="Delete transaction"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                      {/* Mobile Card Action Buttons */}
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <a
+                          href={whatsappDirectUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold shadow-xs transition-all"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+
+                        <button
+                          onClick={() => setSelectedTx(tx)}
+                          className="px-3.5 py-2 rounded-xl bg-wellness-surface hover:bg-wellness-border/50 text-wellness-dark border border-wellness-border text-xs font-semibold transition-colors cursor-pointer"
+                        >
+                          Details
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(tx)}
+                          className="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer"
+                          title="Delete record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 2. DESKTOP & TABLET VIEW: High-Density Table (>= md) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-wellness-surface/80 border-b border-wellness-border text-[11px] font-bold text-wellness-dark uppercase tracking-wider">
+                      <th className="py-3 px-4">#</th>
+                      <th className="py-3 px-4">Date & Time</th>
+                      <th className="py-3 px-4">Attendee</th>
+                      <th className="py-3 px-4">WhatsApp / Phone</th>
+                      <th className="py-3 px-4">Amount</th>
+                      <th className="py-3 px-4">Payment ID</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-wellness-border/60 text-xs">
+                    {filteredTransactions.map((tx, idx) => {
+                      const attendeeNumber = (tx.whatsappNumber || "").replace(/\D/g, "");
+                      const fullContactNumber = `${(tx.countryCode || "+91").replace(/\D/g, "")}${attendeeNumber}`;
+                      const whatsappDirectUrl = `https://wa.me/${fullContactNumber}?text=${encodeURIComponent(
+                        getAdminWhatsAppMessage(tx)
+                      )}`;
+
+                      return (
+                        <tr
+                          key={tx.id || tx.paymentId || idx}
+                          className="hover:bg-wellness-cream/40 transition-colors"
+                        >
+                          <td className="py-3.5 px-4 font-mono text-wellness-muted text-[11px]">
+                            {idx + 1}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-semibold text-wellness-dark">
+                              {tx.dateString || "N/A"}
+                            </div>
+                            <div className="text-[11px] text-wellness-muted font-mono">
+                              {tx.timeString || ""}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-wellness-dark">
+                              {tx.fullName || "N/A"}
+                            </div>
+                            <div className="text-[11px] text-wellness-muted break-all">
+                              {tx.email || "N/A"}
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono font-medium text-wellness-dark">
+                                {tx.countryCode || "+91"} {tx.whatsappNumber || "N/A"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-extrabold text-wellness-primary font-mono text-sm">
+                              ₹{tx.amount || 19}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-1">
+                              <span className="font-mono text-[11px] text-wellness-dark max-w-[120px] truncate">
+                                {tx.paymentId}
+                              </span>
+                              <button
+                                onClick={() => handleCopy(tx.paymentId, tx.id || tx.paymentId)}
+                                className="text-wellness-muted hover:text-wellness-primary p-1 cursor-pointer"
+                                title="Copy Payment ID"
+                              >
+                                {copiedId === (tx.id || tx.paymentId) ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              {tx.status || "SUCCESS"}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {/* Direct WhatsApp Chat Link */}
+                              <a
+                                href={whatsappDirectUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition-colors"
+                                title="Open WhatsApp chat with prefilled confirmation"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>WhatsApp</span>
+                              </a>
+
+                              {/* View Full Modal */}
+                              <button
+                                onClick={() => setSelectedTx(tx)}
+                                className="px-2.5 py-1.5 rounded-lg bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark border border-wellness-border text-[11px] font-semibold transition-colors cursor-pointer"
+                              >
+                                Details
+                              </button>
+
+                              {/* Delete Option */}
+                              <button
+                                onClick={() => handleDelete(tx)}
+                                className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer"
+                                title="Delete transaction"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </main>
 
       {/* ------------------------------------------------------------- */}
-      {/* 3. TRANSACTION DETAILS MODAL */}
+      {/* 3. TRANSACTION DETAILS MODAL (Fully Mobile Responsive) */}
       {/* ------------------------------------------------------------- */}
       {selectedTx && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-wellness-dark/75 backdrop-blur-sm animate-fade-in">
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-wellness-border overflow-hidden animate-fade-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-wellness-dark/75 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="relative w-full max-w-md my-auto bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-wellness-border overflow-hidden animate-fade-up max-h-[92vh] flex flex-col">
             {/* Header */}
-            <div className="bg-gradient-to-r from-wellness-primaryDark to-wellness-primary p-5 text-white flex items-center justify-between">
-              <div>
-                <span className="text-xs uppercase tracking-wider text-wellness-goldLight font-bold">
+            <div className="bg-gradient-to-r from-wellness-primaryDark to-wellness-primary p-4 sm:p-5 text-white flex items-center justify-between shrink-0">
+              <div className="min-w-0 pr-2">
+                <span className="text-[10px] sm:text-xs uppercase tracking-wider text-wellness-goldLight font-bold">
                   Transaction Receipt
                 </span>
-                <h3 className="text-lg font-bold font-serif leading-tight">
+                <h3 className="text-base sm:text-lg font-bold font-serif leading-tight truncate">
                   Registration #{selectedTx.id?.slice(0, 8) || selectedTx.paymentId?.slice(0, 8)}
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedTx(null)}
-                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-5 sm:p-6 space-y-4 text-xs sm:text-sm">
-              <div className="bg-wellness-surface/75 rounded-2xl p-4 border border-wellness-border space-y-2.5">
+            {/* Modal Body (Scrollable on small screens) */}
+            <div className="p-4 sm:p-6 space-y-3.5 sm:space-y-4 text-xs sm:text-sm overflow-y-auto flex-1">
+              <div className="bg-wellness-surface/75 rounded-2xl p-3.5 sm:p-4 border border-wellness-border space-y-2">
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
-                  <span className="text-wellness-muted font-medium">Attendee Name:</span>
-                  <span className="text-wellness-dark font-bold">{selectedTx.fullName}</span>
+                  <span className="text-wellness-muted font-medium">Attendee:</span>
+                  <span className="text-wellness-dark font-bold text-right">{selectedTx.fullName}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
-                  <span className="text-wellness-muted font-medium">Email Address:</span>
-                  <span className="text-wellness-dark font-bold break-all">{selectedTx.email}</span>
+                  <span className="text-wellness-muted font-medium">Email:</span>
+                  <span className="text-wellness-dark font-bold break-all text-right max-w-[200px]">{selectedTx.email}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
                   <span className="text-wellness-muted font-medium">WhatsApp:</span>
-                  <span className="text-wellness-dark font-bold font-mono">
+                  <span className="text-wellness-dark font-bold font-mono text-right">
                     {selectedTx.countryCode} {selectedTx.whatsappNumber}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
-                  <span className="text-wellness-muted font-medium">Amount Paid:</span>
+                  <span className="text-wellness-muted font-medium">Amount:</span>
                   <span className="text-wellness-primary font-extrabold font-mono text-base">
                     ₹{selectedTx.amount || 19}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
                   <span className="text-wellness-muted font-medium">Payment Date:</span>
-                  <span className="text-wellness-dark font-semibold">
-                    {selectedTx.dateString} at {selectedTx.timeString}
+                  <span className="text-wellness-dark font-semibold text-right">
+                    {selectedTx.dateString} {selectedTx.timeString ? `at ${selectedTx.timeString}` : ""}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
                   <span className="text-wellness-muted font-medium">Payment ID:</span>
-                  <span className="text-wellness-dark font-mono text-xs break-all">
+                  <span className="text-wellness-dark font-mono text-[11px] break-all text-right max-w-[180px]">
                     {selectedTx.paymentId}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
                   <span className="text-wellness-muted font-medium">Order ID:</span>
-                  <span className="text-wellness-dark font-mono text-xs break-all">
+                  <span className="text-wellness-dark font-mono text-[11px] break-all text-right max-w-[180px]">
                     {selectedTx.orderId}
                   </span>
                 </div>
@@ -1282,7 +1402,7 @@ Yogaregime Team`;
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow-md transition-all text-center"
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 sm:py-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs sm:text-sm shadow-md transition-all text-center"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Send WhatsApp Confirmation</span>
@@ -1297,12 +1417,12 @@ Yogaregime Team`;
                   {copiedId === "modal_msg" ? (
                     <>
                       <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>WhatsApp Confirmation Message Copied!</span>
+                      <span>WhatsApp Message Copied!</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5 text-wellness-muted" />
-                      <span>Copy Full WhatsApp Confirmation Text</span>
+                      <span>Copy WhatsApp Confirmation Text</span>
                     </>
                   )}
                 </button>
