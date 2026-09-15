@@ -133,6 +133,9 @@ export default function AdminPage() {
 
     setDataLoading(true);
 
+    // Initial background sync with Razorpay to ensure complete data freshness
+    syncRazorpayToFirestore().catch((e) => console.warn("Initial background sync warning:", e));
+
     const unsubscribe = subscribeToTransactions(
       (list) => {
         setTransactions(list || []);
@@ -417,7 +420,23 @@ Yogaregime Team`;
   };
 
   // Filtered & Sorted Transactions
+  // Helper to get YYYY-MM-DD in IST (Asia/Kolkata)
+  const getISTDateStr = (val) => {
+    if (!val) return "";
+    try {
+      const d = typeof val === "number" ? new Date(val) : new Date(val);
+      if (isNaN(d.getTime())) return "";
+      return d.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    } catch (e) {
+      return "";
+    }
+  };
+
+  // Filtered & Sorted Transactions
   const filteredTransactions = useMemo(() => {
+    const todayIST = getISTDateStr(Date.now());
+    const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
     return transactions
       .filter((tx) => {
         // Search query matching
@@ -436,30 +455,19 @@ Yogaregime Team`;
         // Date Filtering
         if (dateFilter === "all") return true;
 
-        const txDate = tx.isoDate ? new Date(tx.isoDate) : new Date(tx.clientTimestamp || Date.now());
-        const today = new Date();
+        const txISTDate = getISTDateStr(tx.isoDate || tx.clientTimestamp);
+        const txTimestamp = tx.clientTimestamp || (tx.isoDate ? new Date(tx.isoDate).getTime() : 0);
 
         if (dateFilter === "today") {
-          return (
-            txDate.getDate() === today.getDate() &&
-            txDate.getMonth() === today.getMonth() &&
-            txDate.getFullYear() === today.getFullYear()
-          );
+          return txISTDate === todayIST;
         }
 
         if (dateFilter === "last7days") {
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(today.getDate() - 7);
-          return txDate >= sevenDaysAgo;
+          return txTimestamp >= sevenDaysAgoMs;
         }
 
         if (dateFilter === "custom" && customDate) {
-          const selected = new Date(customDate);
-          return (
-            txDate.getDate() === selected.getDate() &&
-            txDate.getMonth() === selected.getMonth() &&
-            txDate.getFullYear() === selected.getFullYear()
-          );
+          return txISTDate === customDate;
         }
 
         return true;
@@ -474,16 +482,11 @@ Yogaregime Team`;
   // Summary Metrics
   const metrics = useMemo(() => {
     const totalCount = transactions.length;
-    const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 1), 0);
+    const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
 
-    const today = new Date();
+    const todayIST = getISTDateStr(Date.now());
     const todayCount = transactions.filter((tx) => {
-      const txDate = tx.isoDate ? new Date(tx.isoDate) : new Date(tx.clientTimestamp || Date.now());
-      return (
-        txDate.getDate() === today.getDate() &&
-        txDate.getMonth() === today.getMonth() &&
-        txDate.getFullYear() === today.getFullYear()
-      );
+      return getISTDateStr(tx.isoDate || tx.clientTimestamp) === todayIST;
     }).length;
 
     return { totalCount, totalRevenue, todayCount };

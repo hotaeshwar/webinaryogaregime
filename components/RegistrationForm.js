@@ -216,6 +216,7 @@ export default function RegistrationForm() {
           const payData = {
             razorpay_payment_id: paymentId,
             razorpay_order_id: returnedOrderId,
+            amount: 19,
           };
 
           // Save transaction to Firebase Firestore & local storage immediately
