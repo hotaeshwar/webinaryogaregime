@@ -173,7 +173,7 @@ export default function RegistrationForm() {
         key: razorpayKey,
         amount: orderAmount,
         currency: orderCurrency,
-        name: "Bandhas & Nauli Kriya Workshop",
+        name: "The Art of Breathing Workshop",
         description: "Workshop Registration (₹19)",
         image: typeof window !== "undefined" && !window.location.hostname.includes("localhost") ? "/logo1.png" : undefined,
         prefill: {
@@ -182,7 +182,7 @@ export default function RegistrationForm() {
           contact: cleanPhone,
         },
         notes: {
-          workshop: "Bandhas & Nauli Kriya Workshop",
+          workshop: "The Art of Breathing Workshop",
           attendee_name: formData.fullName.trim(),
           attendee_email: formData.email.trim(),
           attendee_phone: cleanPhone,
@@ -515,7 +515,7 @@ export default function RegistrationForm() {
                 className="mt-1 w-4.5 h-4.5 rounded border-wellness-border text-wellness-primary focus:ring-wellness-primary/20 accent-wellness-primary cursor-pointer shrink-0"
               />
               <span className="text-xs text-wellness-muted leading-relaxed">
-                I understand this is an interactive online workshop on Saturday, 19 Sept (8:00 AM) and agree to complete the ₹19 token fee to reserve my seat.
+                I understand this is an interactive online workshop on Saturday, 31st Oct (8:00 AM) and agree to complete the ₹19 token fee to reserve my seat.
               </span>
             </label>
             {touched.termsAccepted && formErrors.termsAccepted && (

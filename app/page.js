@@ -18,7 +18,7 @@ export default function Home() {
           <div className="flex items-center gap-3.5">
             <img
               src="/logo1.png"
-              alt="Bandhas & Nauli Kriya Workshop Logo"
+              alt="The Art of Breathing Workshop Logo"
               className="h-14 sm:h-16 w-auto max-w-[180px] object-contain drop-shadow-sm transition-transform hover:scale-105"
             />
             <div>
@@ -58,13 +58,13 @@ export default function Home() {
             Live Online Masterclass • ₹19
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-wellness-dark tracking-tight font-serif leading-tight">
-            Lock Your Energies,{" "}
+            Master Your Breath,{" "}
             <span className="text-wellness-primary italic font-serif">
-              Unlock Your Strength
+              Transform Your Life
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-wellness-muted font-medium">
-            Bandhas & Nauli Kriya Workshop • Saturday, 19 Sept (8:00 AM IST)
+            The Art of Breathing Workshop • Saturday, 31st Oct (8:00 AM IST)
           </p>
         </div>
 
@@ -94,7 +94,7 @@ export default function Home() {
                   Live Interactive Q&A
                 </h4>
                 <p className="text-xs text-wellness-muted">
-                  Direct master guidance for your postures & locks
+                  Direct master guidance for your breathwork & practice
                 </p>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function Home() {
               alt="Logo"
               className="h-10 w-auto object-contain"
             />
-            <p>© {new Date().getFullYear()} Bandhas & Nauli Kriya Workshop. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} The Art of Breathing Workshop. All rights reserved.</p>
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">

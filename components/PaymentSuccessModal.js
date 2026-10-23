@@ -91,7 +91,7 @@ export default function PaymentSuccessModal({
   }, [countdown, onReset]);
 
   const confirmationDetailsText = `WORKSHOP REGISTRATION CONFIRMATION
-Lock Your Energies, Unlock Your Strength - Bandhas & Nauli Kriya Workshop
+Master Your Breath, Transform Your Life - The Art of Breathing Workshop
 
 ATTENDEE DETAILS:
 - Name: ${registrationData.fullName}
@@ -99,7 +99,7 @@ ATTENDEE DETAILS:
 - Contact: ${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}
 
 WORKSHOP DETAILS:
-- Date: Saturday, 19 September
+- Date: Saturday, 31 October
 - Time: 8:00 AM IST (Online Live Interactive)
 - Fee Paid: Rs. 19
 
@@ -140,7 +140,7 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
             Registration Confirmed!
           </h2>
           <p className="text-xs sm:text-sm text-gray-200 mt-1">
-            Bandhas & Nauli Kriya Workshop • Sat, 19 Sept (8:00 AM)
+            The Art of Breathing Workshop • Sat, 31 Oct (8:00 AM)
           </p>
 
           {/* 10-Second Timer Countdown Badge */}

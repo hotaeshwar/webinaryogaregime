@@ -15,32 +15,32 @@ import {
 export default function WorkshopDetails() {
   const highlights = [
     {
-      title: "What Bandhas are and why they are practised",
-      desc: "Ancient internal locks that preserve vital prana and elevate physical mastery.",
+      title: "The Science & Philosophy of Yogic Breathing",
+      desc: "Understand how conscious breath regulation revitalizes the nervous system, balances prana, and calms the mind.",
     },
     {
-      title: "Mula, Uddiyana and Jalandhara Bandha",
-      desc: "Step-by-step anatomical guidance to engage pelvic, abdominal, and throat locks.",
+      title: "Diaphragmatic & Full Yogic Breath (Dirga Pranayama)",
+      desc: "Expand lung capacity and improve oxygenation through systematic three-part breath integration.",
     },
     {
-      title: "Applying Bandhas during asana practice",
-      desc: "Integrate energetic locks seamlessly into standing, balancing, and seated postures.",
+      title: "Nadi Shodhana & Anulom Vilom for Mental Balance",
+      desc: "Harmonize the brain hemispheres, balance energy channels (nadis), and release deep mental tension.",
     },
     {
-      title: "Breath, core control and internal awareness",
-      desc: "Master deep diaphragm control and cultivate laser-sharp mind-body connectivity.",
+      title: "Energizing Breaths: Kapalabhati & Bhastrika",
+      desc: "Invigorating cleansing practices to detoxify the respiratory system and awaken natural vitality.",
     },
     {
-      title: "Building the foundation for Nauli Kriya",
-      desc: "Isolated abdominal muscle churning preparation for ultimate digestive & energy cleanse.",
+      title: "Cooling & Calming Techniques: Sheetali & Bhramari",
+      desc: "Soothe anxiety, cool internal heat, and induce immediate mental stillness with humming sound vibrations.",
     },
     {
-      title: "Common mistakes, precautions and safe progression",
-      desc: "Learn contraindications, avoid strain, and build safe daily routines.",
+      title: "Breath Retention (Kumbhaka) & Vital Energy Control",
+      desc: "Safe progression into mindful breath retention to cultivate inner focus, endurance, and meditative calm.",
     },
     {
-      title: "How Bandha awareness can transform your practice",
-      desc: "Unlock lightness, effortless inversions, and deeper meditative calm.",
+      title: "Daily Breathwork Protocol & Safe Progression",
+      desc: "Establish a 15-minute daily breathing routine with clear precautions, contraindications, and posture alignment.",
     },
   ];
 
@@ -61,13 +61,13 @@ export default function WorkshopDetails() {
       {/* Main Title & Subtitle */}
       <div className="space-y-3">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-wellness-dark tracking-tight leading-[1.15] font-serif">
-          Lock Your Energies,{" "}
+          Master Your Breath,{" "}
           <span className="text-wellness-primary italic font-serif underline decoration-wellness-gold/50 decoration-wavy decoration-1">
-            Unlock Your Strength
+            Transform Your Life
           </span>
         </h1>
         <p className="text-lg sm:text-xl font-medium text-wellness-muted">
-          Bandhas & Nauli Kriya Workshop
+          The Art of Breathing Workshop
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export default function WorkshopDetails() {
             </span>
           </div>
           <span className="text-sm font-bold text-wellness-dark leading-snug">
-            Saturday, 19 Sept
+            Saturday, 31st Oct
           </span>
         </div>
 

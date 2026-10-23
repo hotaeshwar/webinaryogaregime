@@ -17,22 +17,24 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata = {
-  title: "Bandhas & Nauli Kriya Workshop Registration",
+  title: "The Art of Breathing Workshop Registration",
   description:
-    "Register for the Bandhas & Nauli Kriya Workshop and securely complete your ₹19 workshop payment online.",
+    "Register for The Art of Breathing Workshop and securely complete your ₹19 workshop payment online.",
   keywords: [
-    "Bandhas",
-    "Nauli Kriya",
-    "Yoga Workshop",
-    "Mula Bandha",
-    "Uddiyana Bandha",
-    "Jalandhara Bandha",
+    "The Art of Breathing",
     "Pranayama",
-    "Core Strength",
+    "Breathwork",
+    "Yoga Workshop",
+    "Kapalabhati",
+    "Anulom Vilom",
+    "Nadi Shodhana",
+    "Diaphragmatic Breathing",
+    "Vital Energy",
+    "Mindfulness",
   ],
   openGraph: {
-    title: "Lock Your Energies, Unlock Your Strength - Bandhas & Nauli Kriya Workshop",
-    description: "Online 90-Min Intensive Masterclass on Saturday, 19 September at 8:00 AM.",
+    title: "Master Your Breath, Transform Your Life - The Art of Breathing Workshop",
+    description: "Online 90-Min Intensive Masterclass on Saturday, 31 October at 8:00 AM.",
     type: "website",
   },
 };

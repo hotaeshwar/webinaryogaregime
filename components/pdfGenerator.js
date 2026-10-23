@@ -47,8 +47,8 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
       paymentId: paymentData.razorpay_payment_id || "N/A",
       orderId: paymentData.razorpay_order_id || "N/A",
       amountPaid: "Rs. 19",
-      workshop: "Bandhas & Nauli Kriya Workshop",
-      date: "Saturday, 19 September",
+      workshop: "The Art of Breathing Workshop",
+      date: "Saturday, 31 October",
       time: "8:00 AM IST",
       savedAt: new Date().toISOString(),
       status: "CONFIRMED & VERIFIED",
@@ -110,7 +110,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.text("BANDHAS & NAULI KRIYA", 52, 20);
+    doc.text("THE ART OF BREATHING", 52, 20);
 
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
@@ -119,7 +119,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
 
     doc.setFontSize(9);
     doc.setTextColor(200, 220, 210);
-    doc.text("Saturday, 19 September • 8:00 AM IST (90 Minutes)", 52, 34);
+    doc.text("Saturday, 31 October • 8:00 AM IST (90 Minutes)", 52, 34);
 
     // Verified Stamp / Badge in top right
     doc.setFillColor(34, 139, 34);
@@ -193,12 +193,12 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
     doc.setFont("helvetica", "bold");
     doc.text("Workshop:", cardX + 8, cardY + 60);
     doc.setFont("helvetica", "normal");
-    doc.text("Lock Your Energies, Unlock Your Strength", cardX + 45, cardY + 60);
+    doc.text("Master Your Breath, Transform Your Life", cardX + 45, cardY + 60);
 
     doc.setFont("helvetica", "bold");
     doc.text("Date & Time:", cardX + 8, cardY + 68);
     doc.setFont("helvetica", "normal");
-    doc.text("Saturday, 19 Sept • 8:00 AM IST", cardX + 45, cardY + 68);
+    doc.text("Saturday, 31 Oct • 8:00 AM IST", cardX + 45, cardY + 68);
 
     doc.setFont("helvetica", "bold");
     doc.text("Format:", cardX + 8, cardY + 76);
@@ -260,7 +260,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
 
     const guidelines = [
       "1. The live interactive session joining link will be sent to your registered Email prior to the masterclass.",
-      "2. Please join with an empty stomach (or at least 3-4 hours after a meal) for optimal Bandha and Nauli practice.",
+      "2. Please join with an empty stomach (or at least 2-3 hours after a light meal) for optimal breathing and pranayama practice.",
       "3. Wear comfortable yoga attire and keep a yoga mat, water, and an open space ready.",
       "4. Support & Helpline: support@yogaregime.com for any questions or coordination.",
     ];

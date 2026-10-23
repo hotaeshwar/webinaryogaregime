@@ -371,7 +371,7 @@ export default function AdminPage() {
   // Helper to generate clean plain text Event & Transaction confirmation message
   const getAdminEmailMessage = (tx) => {
     if (!tx) return "";
-    const dateFormatted = tx.dateString || "Saturday, 19 Sept";
+    const dateFormatted = tx.dateString || "Saturday, 31st Oct";
     const timeFormatted = tx.timeString ? ` at ${tx.timeString}` : "";
     
     return `WORKSHOP REGISTRATION CONFIRMATION AND ADMISSION PASS
@@ -381,9 +381,9 @@ Hello ${tx.fullName || "Attendee"},
 Your registration for the upcoming live online masterclass is confirmed. Below are your event admission and transaction details:
 
 EVENT AND WORKSHOP DETAILS:
-- Workshop: Lock Your Energies, Unlock Your Strength
-- Topic: Bandhas and Nauli Kriya Masterclass
-- Date: Saturday, 19 September
+- Workshop: Master Your Breath, Transform Your Life
+- Topic: The Art of Breathing Masterclass
+- Date: Saturday, 31 October
 - Time: 8:00 AM IST (90 Minutes Live Interactive)
 - Mode: Online Live Session
 - Organizer Support: support@yogaregime.com
@@ -401,7 +401,7 @@ TRANSACTION AND PAYMENT DETAILS:
 - Registration Date: ${dateFormatted}${timeFormatted}
 
 SESSION GUIDELINES:
-1. Practice on an empty stomach for Bandhas and Nauli.
+1. Practice on an empty stomach for breathwork and pranayama.
 2. Wear comfortable yoga attire and keep a yoga mat ready.
 3. Join 5-10 minutes prior to 8:00 AM IST.
 
@@ -551,7 +551,7 @@ Yogaregime Team`;
         escapeCSV(tx.email || "N/A"),
         formatAsTextCell(tx.countryCode || "+91"),
         formatAsTextCell(tx.whatsappNumber || ""),
-        escapeCSV(tx.workshop || "Bandhas & Nauli Kriya Workshop"),
+        escapeCSV(tx.workshop || "The Art of Breathing Workshop"),
         tx.amount || 1,
         formatAsTextCell(tx.paymentId || ""),
         formatAsTextCell(tx.orderId || ""),
@@ -607,7 +607,7 @@ Yogaregime Team`;
             </div>
             <h1 className="text-2xl font-bold font-serif">Admin Portal</h1>
             <p className="text-xs text-gray-200 mt-1">
-              Bandhas & Nauli Kriya Workshop Dashboard
+              The Art of Breathing Workshop Dashboard
             </p>
             <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/40 text-[10px] text-emerald-200 border border-emerald-400/30">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -1000,7 +1000,7 @@ Yogaregime Team`;
                 Masterclass
               </p>
               <h3 className="text-sm sm:text-base lg:text-lg font-bold font-serif mt-0.5 sm:mt-1 truncate">
-                Sat, 19 Sept
+                Sat, 31 Oct
               </h3>
               <p className="text-[10px] sm:text-[11px] text-gray-200 mt-0.5 flex items-center gap-1 truncate">
                 <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-wellness-goldLight shrink-0" />
