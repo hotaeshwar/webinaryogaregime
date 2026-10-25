@@ -90,11 +90,8 @@ export default function PaymentSuccessModal({
     }
   }, [countdown, onReset]);
 
-  const regId = paymentData?.registrationId || paymentData?.paymentId || paymentData?.razorpay_payment_id || "N/A";
-  const orderRef = paymentData?.orderId || paymentData?.razorpay_order_id || "N/A";
-
   const confirmationDetailsText = `WORKSHOP REGISTRATION CONFIRMATION
-Master Your Breath, Transform Your Life - The Art of Breathing Workshop
+The Art of Breathing Workshop
 
 ATTENDEE DETAILS:
 - Name: ${registrationData.fullName}
@@ -102,14 +99,14 @@ ATTENDEE DETAILS:
 - Contact: ${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}
 
 WORKSHOP DETAILS:
-- Date: Saturday, 31 October
+- Date: Saturday, 31st October
 - Time: 8:15 AM IST (Online Live Interactive)
-- Access Pass: Free Admission
+- Fee Paid: Rs. 1
 
-REGISTRATION DETAILS:
-- Registration ID: ${regId}
-- Pass Reference: ${orderRef}
-- Status: Confirmed & Registered
+PAYMENT DETAILS:
+- Payment ID: ${paymentData.razorpay_payment_id}
+- Order ID: ${paymentData.razorpay_order_id}
+- Status: Confirmed & Paid
 
 Helpline Support: support@yogaregime.com • +91 98769 63204`;
 
@@ -137,13 +134,13 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
             <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-300 animate-pulse-subtle" />
           </div>
           <span className="inline-block px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/25 text-emerald-200 border border-emerald-400/30 uppercase tracking-widest mb-1">
-            Registration Confirmed ✓
+            Payment Verified ✓
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold font-serif leading-tight">
             Registration Confirmed!
           </h2>
           <p className="text-xs sm:text-sm text-gray-200 mt-1">
-            The Art of Breathing Workshop • Sat, 31 Oct (8:15 AM)
+            The Art of Breathing Workshop • Sat, 31st Oct (8:15 AM)
           </p>
 
           {/* 10-Second Timer Countdown Badge */}
@@ -199,25 +196,25 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
               </span>
             </div>
             <div className="flex justify-between items-center py-0.5 border-b border-wellness-border/50">
-              <span className="text-wellness-muted font-medium">Access Pass:</span>
-              <span className="text-emerald-700 font-extrabold text-sm sm:text-base font-mono">
-                Free Pass
+              <span className="text-wellness-muted font-medium">Amount Paid:</span>
+              <span className="text-wellness-primary font-extrabold text-sm sm:text-base font-mono">
+                ₹1
               </span>
             </div>
             <div className="flex justify-between items-start py-0.5 border-b border-wellness-border/50 text-[11px] sm:text-xs">
               <span className="text-wellness-muted font-medium shrink-0 mr-2">
-                Registration ID:
+                Payment ID:
               </span>
               <span className="text-wellness-dark font-mono font-semibold break-all text-right">
-                {regId}
+                {paymentData.razorpay_payment_id}
               </span>
             </div>
             <div className="flex justify-between items-start py-0.5 text-[11px] sm:text-xs">
               <span className="text-wellness-muted font-medium shrink-0 mr-2">
-                Pass Reference:
+                Order ID:
               </span>
               <span className="text-wellness-dark font-mono font-semibold break-all text-right">
-                {orderRef}
+                {paymentData.razorpay_order_id}
               </span>
             </div>
           </div>

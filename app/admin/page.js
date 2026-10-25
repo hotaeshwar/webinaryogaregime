@@ -133,6 +133,9 @@ export default function AdminPage() {
 
     setDataLoading(true);
 
+    // Initial background sync with Razorpay to ensure complete data freshness
+    syncRazorpayToFirestore().catch((e) => console.warn("Initial background sync warning:", e));
+
     const unsubscribe = subscribeToTransactions(
       (list) => {
         setTransactions(list || []);
@@ -262,11 +265,8 @@ export default function AdminPage() {
         whatsappNumber: `98765${randomSuffix}`,
       };
       const testPayData = {
-        registrationId: `reg_test_${Date.now().toString(36)}_${randomSuffix}`,
-        orderId: `pass_test_${Date.now().toString(36)}`,
-        razorpay_payment_id: `reg_test_${Date.now().toString(36)}_${randomSuffix}`,
-        razorpay_order_id: `pass_test_${Date.now().toString(36)}`,
-        amount: 0,
+        razorpay_payment_id: `pay_test_${Date.now().toString(36)}_${randomSuffix}`,
+        razorpay_order_id: `order_test_${Date.now().toString(36)}`,
       };
 
       const result = await saveTransaction(testRegData, testPayData);
@@ -381,9 +381,9 @@ Hello ${tx.fullName || "Attendee"},
 Your registration for the upcoming live online masterclass is confirmed. Below are your event admission and transaction details:
 
 EVENT AND WORKSHOP DETAILS:
-- Workshop: Master Your Breath, Transform Your Life
+- Workshop: The Art of Breathing
 - Topic: The Art of Breathing Masterclass
-- Date: Saturday, 31 October
+- Date: Saturday, 31st October
 - Time: 8:15 AM IST (90 Minutes Live Interactive)
 - Mode: Online Live Session
 - Organizer Support: support@yogaregime.com
@@ -393,15 +393,15 @@ ATTENDEE DETAILS:
 - Email: ${tx.email || "N/A"}
 - Contact: ${tx.countryCode || "+91"} ${tx.whatsappNumber || tx.phone || "N/A"}
 
-REGISTRATION AND ACCESS DETAILS:
-- Access Pass: ${tx.amount ? `Rs. ${tx.amount} INR` : "Free Pass"}
-- Status: Confirmed & Registered (${tx.status || "CONFIRMED"})
-- Registration ID: ${tx.registrationId || tx.paymentId || "N/A"}
-- Pass Reference: ${tx.orderId || "N/A"}
+TRANSACTION AND PAYMENT DETAILS:
+- Amount Paid: Rs. ${tx.amount || 1} INR
+- Payment Status: Verified and Confirmed (${tx.status || "SUCCESS"})
+- Razorpay Payment ID: ${tx.paymentId || "N/A"}
+- Razorpay Order ID: ${tx.orderId || "N/A"}
 - Registration Date: ${dateFormatted}${timeFormatted}
 
 SESSION GUIDELINES:
-1. Practice on an empty stomach for breathwork and pranayama.
+1. Practice on an empty stomach or at least 2 hours after a light meal.
 2. Wear comfortable yoga attire and keep a yoga mat ready.
 3. Join 5-10 minutes prior to 8:15 AM IST.
 
@@ -506,8 +506,8 @@ Yogaregime Team`;
       "WhatsApp Number",
       "Workshop",
       "Amount (INR)",
-      "Registration ID",
-      "Pass Reference / Order ID",
+      "Razorpay Payment ID",
+      "Razorpay Order ID",
       "Status",
     ];
 
@@ -860,20 +860,20 @@ Yogaregime Team`;
               <span>{creatingTest ? "Saving..." : "Test Record"}</span>
             </button>
 
-            {/* Sync Cloud Button */}
+            {/* Sync Razorpay Button */}
             <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              title="Fetch latest registrations from Cloud Firestore"
+              onClick={handleSyncRazorpay}
+              disabled={syncingRazorpay}
+              title="Fetch all transactions directly from Razorpay & save to Cloud Firestore"
               className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-50 hover:bg-blue-100 text-[11px] sm:text-xs font-bold text-blue-800 transition-all cursor-pointer shadow-xs"
             >
-              {refreshing ? (
+              {syncingRazorpay ? (
                 <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
               )}
-              <span className="hidden sm:inline">{refreshing ? "Syncing..." : "Sync Cloud"}</span>
-              <span className="sm:hidden">{refreshing ? "..." : "Sync"}</span>
+              <span className="hidden sm:inline">{syncingRazorpay ? "Syncing..." : "Sync Razorpay"}</span>
+              <span className="sm:hidden">{syncingRazorpay ? "..." : "Sync"}</span>
             </button>
 
             {/* Refresh Button */}
@@ -1000,7 +1000,7 @@ Yogaregime Team`;
                 Masterclass
               </p>
               <h3 className="text-sm sm:text-base lg:text-lg font-bold font-serif mt-0.5 sm:mt-1 truncate">
-                Sat, 31 Oct
+                Sat, 31st Oct
               </h3>
               <p className="text-[10px] sm:text-[11px] text-gray-200 mt-0.5 flex items-center gap-1 truncate">
                 <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-wellness-goldLight shrink-0" />

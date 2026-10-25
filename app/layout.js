@@ -1,3 +1,4 @@
+import Script from "next/script";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
@@ -18,22 +19,20 @@ const playfairDisplay = Playfair_Display({
 export const metadata = {
   title: "The Art of Breathing Workshop Registration",
   description:
-    "Register for The Art of Breathing Workshop and secure your workshop seat online.",
+    "Register for The Art of Breathing Workshop and securely complete your ₹1 workshop payment online.",
   keywords: [
     "The Art of Breathing",
     "Pranayama",
     "Breathwork",
     "Yoga Workshop",
-    "Kapalabhati",
-    "Anulom Vilom",
-    "Nadi Shodhana",
     "Diaphragmatic Breathing",
-    "Vital Energy",
+    "Nadi Shodhana",
     "Mindfulness",
+    "Stress Relief",
   ],
   openGraph: {
-    title: "Master Your Breath, Transform Your Life - The Art of Breathing Workshop",
-    description: "Online 90-Min Intensive Masterclass on Saturday, 31 October at 8:15 AM.",
+    title: "The Art of Breathing Workshop",
+    description: "Online 90-Min Intensive Masterclass on Saturday, 31st October at 8:15 AM.",
     type: "website",
   },
 };
@@ -46,6 +45,11 @@ export default function RootLayout({ children }) {
     >
       <body className="bg-wellness-bg text-wellness-dark min-h-screen selection:bg-wellness-goldLight selection:text-wellness-primaryDark font-sans">
         {children}
+        {/* Load Razorpay Checkout Script */}
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

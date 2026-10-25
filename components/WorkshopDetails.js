@@ -15,32 +15,32 @@ import {
 export default function WorkshopDetails() {
   const highlights = [
     {
-      title: "The Science & Philosophy of Yogic Breathing",
-      desc: "Understand how conscious breath regulation revitalizes the nervous system, balances prana, and calms the mind.",
+      title: "Science & Anatomy of Conscious Breath",
+      desc: "Understand how diaphragmatic breath directly regulates the nervous system and prana.",
     },
     {
-      title: "Diaphragmatic & Full Yogic Breath (Dirga Pranayama)",
-      desc: "Expand lung capacity and improve oxygenation through systematic three-part breath integration.",
+      title: "Full Yogic Breathing & Diaphragm Control",
+      desc: "Step-by-step guidance connecting belly, chest, and clavicular breathing for vital lung capacity.",
     },
     {
-      title: "Nadi Shodhana & Anulom Vilom for Mental Balance",
-      desc: "Harmonize the brain hemispheres, balance energy channels (nadis), and release deep mental tension.",
+      title: "Core Pranayama Masterclass",
+      desc: "Practice Nadi Shodhana, Kapalabhati, and Bhastrika safely with correct posture and rhythm.",
     },
     {
-      title: "Energizing Breaths: Kapalabhati & Bhastrika",
-      desc: "Invigorating cleansing practices to detoxify the respiratory system and awaken natural vitality.",
+      title: "Breathwork for Stress & Anxiety Relief",
+      desc: "Master calming down-regulating breath techniques to trigger immediate deep relaxation.",
     },
     {
-      title: "Cooling & Calming Techniques: Sheetali & Bhramari",
-      desc: "Soothe anxiety, cool internal heat, and induce immediate mental stillness with humming sound vibrations.",
+      title: "Enhancing Energy & Mental Clarity",
+      desc: "Harness energizing morning breath cycles to elevate focus stamina and daily vitality.",
     },
     {
-      title: "Breath Retention (Kumbhaka) & Vital Energy Control",
-      desc: "Safe progression into mindful breath retention to cultivate inner focus, endurance, and meditative calm.",
+      title: "Common Mistakes & Breath Retention (Kumbhaka)",
+      desc: "Learn safe progression, avoid chest-straining habits, and balance internal retention safely.",
     },
     {
-      title: "Daily Breathwork Protocol & Safe Progression",
-      desc: "Establish a 15-minute daily breathing routine with clear precautions, contraindications, and posture alignment.",
+      title: "Integrating Breath into Daily Life & Meditation",
+      desc: "Cultivate an effortless daily breathing ritual to sustain inner calm and mindful awareness.",
     },
   ];
 
@@ -61,13 +61,13 @@ export default function WorkshopDetails() {
       {/* Main Title & Subtitle */}
       <div className="space-y-3">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-wellness-dark tracking-tight leading-[1.15] font-serif">
-          Master Your Breath,{" "}
+          The Art of{" "}
           <span className="text-wellness-primary italic font-serif underline decoration-wellness-gold/50 decoration-wavy decoration-1">
-            Transform Your Life
+            Breathing
           </span>
         </h1>
         <p className="text-lg sm:text-xl font-medium text-wellness-muted">
-          The Art of Breathing Workshop
+          Master Your Breath, Transform Your Life
         </p>
       </div>
 
@@ -122,11 +122,11 @@ export default function WorkshopDetails() {
         </div>
       </div>
 
-      {/* Workshop Access Highlight Box */}
+      {/* Workshop Price Highlight Box */}
       <div className="p-5 rounded-2xl bg-gradient-to-r from-wellness-primaryDark via-wellness-primary to-wellness-primaryLight text-white shadow-premium flex items-center justify-between">
         <div className="space-y-1">
           <span className="text-xs uppercase tracking-wider text-wellness-goldLight/80 font-medium">
-            Complimentary Access Pass
+            Exclusive Access Pass
           </span>
           <p className="text-sm text-gray-200">
             Includes live interactive masterclass & Q&A
@@ -134,9 +134,9 @@ export default function WorkshopDetails() {
         </div>
         <div className="text-right">
           <span className="text-xs line-through text-gray-300 mr-2">₹499</span>
-          <span className="text-3xl font-extrabold text-wellness-goldLight">FREE</span>
+          <span className="text-3xl font-extrabold text-wellness-goldLight">₹1</span>
           <span className="block text-[11px] text-gray-200 uppercase tracking-wider font-semibold">
-            Limited Seats
+            Token Fee
           </span>
         </div>
       </div>

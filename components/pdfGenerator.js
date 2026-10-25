@@ -37,24 +37,21 @@ function getImageDataUrl(url) {
  * Generates and downloads a branded PDF pass for the workshop registration.
  * Also saves the record to localStorage.
  */
-export async function generateAndSaveWorkshopPDF(registrationData, paymentData = {}) {
+export async function generateAndSaveWorkshopPDF(registrationData, paymentData) {
   try {
-    const regId = paymentData?.registrationId || paymentData?.paymentId || paymentData?.razorpay_payment_id || "N/A";
-    const orderRef = paymentData?.orderId || paymentData?.razorpay_order_id || "N/A";
-
     // 1. Save record to localStorage
     const bookingRecord = {
       fullName: registrationData.fullName,
       email: registrationData.email,
       phone: `${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}`.trim(),
-      paymentId: regId,
-      orderId: orderRef,
-      amountPaid: "Free Pass",
+      paymentId: paymentData.razorpay_payment_id || "N/A",
+      orderId: paymentData.razorpay_order_id || "N/A",
+      amountPaid: "Rs. 1",
       workshop: "The Art of Breathing Workshop",
       date: "Saturday, 31 October",
       time: "8:15 AM IST",
       savedAt: new Date().toISOString(),
-      status: "CONFIRMED & REGISTERED",
+      status: "CONFIRMED & VERIFIED",
     };
 
     try {
@@ -122,7 +119,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
 
     doc.setFontSize(9);
     doc.setTextColor(200, 220, 210);
-    doc.text("Saturday, 31 October • 8:15 AM IST (90 Minutes)", 52, 34);
+    doc.text("Saturday, 31st October • 8:15 AM IST (90 Minutes)", 52, 34);
 
     // Verified Stamp / Badge in top right
     doc.setFillColor(34, 139, 34);
@@ -130,7 +127,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8.5);
     doc.setFont("helvetica", "bold");
-    doc.text("REGISTRATION PASS", pageWidth - 53, 18);
+    doc.text("PAYMENT VERIFIED", pageWidth - 53, 18);
     doc.setFontSize(7.5);
     doc.text("SEAT CONFIRMED", pageWidth - 50, 23);
 
@@ -196,12 +193,12 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
     doc.setFont("helvetica", "bold");
     doc.text("Workshop:", cardX + 8, cardY + 60);
     doc.setFont("helvetica", "normal");
-    doc.text("Master Your Breath, Transform Your Life", cardX + 45, cardY + 60);
+    doc.text("The Art of Breathing Masterclass", cardX + 45, cardY + 60);
 
     doc.setFont("helvetica", "bold");
     doc.text("Date & Time:", cardX + 8, cardY + 68);
     doc.setFont("helvetica", "normal");
-    doc.text("Saturday, 31 Oct • 8:15 AM IST", cardX + 45, cardY + 68);
+    doc.text("Saturday, 31st Oct • 8:15 AM IST", cardX + 45, cardY + 68);
 
     doc.setFont("helvetica", "bold");
     doc.text("Format:", cardX + 8, cardY + 76);
@@ -220,27 +217,27 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
 
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...primaryDark);
-    doc.text("Access Pass:", payBoxX + 6, payBoxY + 10);
-    doc.setFontSize(12);
+    doc.text("Payment Amount:", payBoxX + 6, payBoxY + 10);
+    doc.setFontSize(13);
     doc.setTextColor(...goldAccent);
-    doc.text("FREE PASS", payBoxX + 50, payBoxY + 10);
+    doc.text("Rs. 1 (INR)", payBoxX + 50, payBoxY + 10);
 
     doc.setFontSize(9.5);
     doc.setTextColor(...textDark);
     doc.setFont("helvetica", "bold");
-    doc.text("Registration ID:", payBoxX + 6, payBoxY + 19);
+    doc.text("Payment ID:", payBoxX + 6, payBoxY + 19);
     doc.setFont("helvetica", "normal");
-    doc.text(String(regId), payBoxX + 50, payBoxY + 19);
+    doc.text(String(paymentData.razorpay_payment_id || "Direct Verified"), payBoxX + 50, payBoxY + 19);
 
     doc.setFont("helvetica", "bold");
-    doc.text("Pass Ref:", payBoxX + 6, payBoxY + 27);
+    doc.text("Order ID:", payBoxX + 6, payBoxY + 27);
     doc.setFont("helvetica", "normal");
-    doc.text(String(orderRef), payBoxX + 50, payBoxY + 27);
+    doc.text(String(paymentData.razorpay_order_id || "Direct Pass"), payBoxX + 50, payBoxY + 27);
 
     doc.setFont("helvetica", "bold");
-    doc.text("Status:", payBoxX + 6, payBoxY + 35);
+    doc.text("Payment Status:", payBoxX + 6, payBoxY + 35);
     doc.setTextColor(34, 139, 34);
-    doc.text("CONFIRMED & REGISTERED ✓", payBoxX + 50, payBoxY + 35);
+    doc.text("SUCCESSFUL & VERIFIED ✓", payBoxX + 50, payBoxY + 35);
 
     // Section 3: Preparation & Guidelines Box
     const noteY = cardY + cardHeight + 8;
@@ -263,7 +260,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
 
     const guidelines = [
       "1. The live interactive session joining link will be sent to your registered Email prior to the masterclass.",
-      "2. Please join with an empty stomach (or at least 2-3 hours after a light meal) for optimal breathing and pranayama practice.",
+      "2. Please join with an empty stomach (or at least 2 hours after a light meal) for optimal breathing practice.",
       "3. Wear comfortable yoga attire and keep a yoga mat, water, and an open space ready.",
       "4. Support & Helpline: support@yogaregime.com for any questions or coordination.",
     ];
