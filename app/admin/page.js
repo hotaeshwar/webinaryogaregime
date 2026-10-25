@@ -133,9 +133,6 @@ export default function AdminPage() {
 
     setDataLoading(true);
 
-    // Initial background sync with Razorpay to ensure complete data freshness
-    syncRazorpayToFirestore().catch((e) => console.warn("Initial background sync warning:", e));
-
     const unsubscribe = subscribeToTransactions(
       (list) => {
         setTransactions(list || []);
@@ -265,8 +262,11 @@ export default function AdminPage() {
         whatsappNumber: `98765${randomSuffix}`,
       };
       const testPayData = {
-        razorpay_payment_id: `pay_test_${Date.now().toString(36)}_${randomSuffix}`,
-        razorpay_order_id: `order_test_${Date.now().toString(36)}`,
+        registrationId: `reg_test_${Date.now().toString(36)}_${randomSuffix}`,
+        orderId: `pass_test_${Date.now().toString(36)}`,
+        razorpay_payment_id: `reg_test_${Date.now().toString(36)}_${randomSuffix}`,
+        razorpay_order_id: `pass_test_${Date.now().toString(36)}`,
+        amount: 0,
       };
 
       const result = await saveTransaction(testRegData, testPayData);
@@ -393,11 +393,11 @@ ATTENDEE DETAILS:
 - Email: ${tx.email || "N/A"}
 - Contact: ${tx.countryCode || "+91"} ${tx.whatsappNumber || tx.phone || "N/A"}
 
-TRANSACTION AND PAYMENT DETAILS:
-- Amount Paid: Rs. ${tx.amount || 1} INR
-- Payment Status: Verified and Confirmed (${tx.status || "SUCCESS"})
-- Razorpay Payment ID: ${tx.paymentId || "N/A"}
-- Razorpay Order ID: ${tx.orderId || "N/A"}
+REGISTRATION AND ACCESS DETAILS:
+- Access Pass: ${tx.amount ? `Rs. ${tx.amount} INR` : "Free Pass"}
+- Status: Confirmed & Registered (${tx.status || "CONFIRMED"})
+- Registration ID: ${tx.registrationId || tx.paymentId || "N/A"}
+- Pass Reference: ${tx.orderId || "N/A"}
 - Registration Date: ${dateFormatted}${timeFormatted}
 
 SESSION GUIDELINES:
@@ -506,8 +506,8 @@ Yogaregime Team`;
       "WhatsApp Number",
       "Workshop",
       "Amount (INR)",
-      "Razorpay Payment ID",
-      "Razorpay Order ID",
+      "Registration ID",
+      "Pass Reference / Order ID",
       "Status",
     ];
 
@@ -860,20 +860,20 @@ Yogaregime Team`;
               <span>{creatingTest ? "Saving..." : "Test Record"}</span>
             </button>
 
-            {/* Sync Razorpay Button */}
+            {/* Sync Cloud Button */}
             <button
-              onClick={handleSyncRazorpay}
-              disabled={syncingRazorpay}
-              title="Fetch all transactions directly from Razorpay & save to Cloud Firestore"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              title="Fetch latest registrations from Cloud Firestore"
               className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-50 hover:bg-blue-100 text-[11px] sm:text-xs font-bold text-blue-800 transition-all cursor-pointer shadow-xs"
             >
-              {syncingRazorpay ? (
+              {refreshing ? (
                 <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
               )}
-              <span className="hidden sm:inline">{syncingRazorpay ? "Syncing..." : "Sync Razorpay"}</span>
-              <span className="sm:hidden">{syncingRazorpay ? "..." : "Sync"}</span>
+              <span className="hidden sm:inline">{refreshing ? "Syncing..." : "Sync Cloud"}</span>
+              <span className="sm:hidden">{refreshing ? "..." : "Sync"}</span>
             </button>
 
             {/* Refresh Button */}
