@@ -33,7 +33,7 @@ export const metadata = {
   ],
   openGraph: {
     title: "Master Your Breath, Transform Your Life - The Art of Breathing Workshop",
-    description: "Online 90-Min Intensive Masterclass on Saturday, 31 October at 8:00 AM.",
+    description: "Online 90-Min Intensive Masterclass on Saturday, 31 October at 8:15 AM.",
     type: "website",
   },
 };

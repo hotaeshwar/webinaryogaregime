@@ -103,7 +103,7 @@ ATTENDEE DETAILS:
 
 WORKSHOP DETAILS:
 - Date: Saturday, 31 October
-- Time: 8:00 AM IST (Online Live Interactive)
+- Time: 8:15 AM IST (Online Live Interactive)
 - Access Pass: Free Admission
 
 REGISTRATION DETAILS:
@@ -143,7 +143,7 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
             Registration Confirmed!
           </h2>
           <p className="text-xs sm:text-sm text-gray-200 mt-1">
-            The Art of Breathing Workshop • Sat, 31 Oct (8:00 AM)
+            The Art of Breathing Workshop • Sat, 31 Oct (8:15 AM)
           </p>
 
           {/* 10-Second Timer Countdown Badge */}

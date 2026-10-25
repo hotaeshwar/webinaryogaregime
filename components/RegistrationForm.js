@@ -434,7 +434,7 @@ export default function RegistrationForm() {
                 className="mt-1 w-4.5 h-4.5 rounded border-wellness-border text-wellness-primary focus:ring-wellness-primary/20 accent-wellness-primary cursor-pointer shrink-0"
               />
               <span className="text-xs text-wellness-muted leading-relaxed">
-                I understand this is an interactive online workshop on Saturday, 31st Oct (8:00 AM) and agree to reserve my seat.
+                I understand this is an interactive online workshop on Saturday, 31st Oct (8:15 AM) and agree to reserve my seat.
               </span>
             </label>
             {touched.termsAccepted && formErrors.termsAccepted && (

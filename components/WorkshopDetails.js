@@ -93,7 +93,7 @@ export default function WorkshopDetails() {
             </span>
           </div>
           <span className="text-sm font-bold text-wellness-dark leading-snug">
-            8:00 AM IST
+            8:15 AM IST
           </span>
         </div>
 

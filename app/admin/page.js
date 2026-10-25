@@ -384,7 +384,7 @@ EVENT AND WORKSHOP DETAILS:
 - Workshop: Master Your Breath, Transform Your Life
 - Topic: The Art of Breathing Masterclass
 - Date: Saturday, 31 October
-- Time: 8:00 AM IST (90 Minutes Live Interactive)
+- Time: 8:15 AM IST (90 Minutes Live Interactive)
 - Mode: Online Live Session
 - Organizer Support: support@yogaregime.com
 
@@ -403,7 +403,7 @@ REGISTRATION AND ACCESS DETAILS:
 SESSION GUIDELINES:
 1. Practice on an empty stomach for breathwork and pranayama.
 2. Wear comfortable yoga attire and keep a yoga mat ready.
-3. Join 5-10 minutes prior to 8:00 AM IST.
+3. Join 5-10 minutes prior to 8:15 AM IST.
 
 The live meeting joining link will be shared to your registered email prior to the session start.
 
@@ -1004,7 +1004,7 @@ Yogaregime Team`;
               </h3>
               <p className="text-[10px] sm:text-[11px] text-gray-200 mt-0.5 flex items-center gap-1 truncate">
                 <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-wellness-goldLight shrink-0" />
-                <span>8:00 AM IST</span>
+                <span>8:15 AM IST</span>
               </p>
             </div>
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-wellness-goldLight shrink-0">
