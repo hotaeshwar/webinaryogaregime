@@ -37,21 +37,24 @@ function getImageDataUrl(url) {
  * Generates and downloads a branded PDF pass for the workshop registration.
  * Also saves the record to localStorage.
  */
-export async function generateAndSaveWorkshopPDF(registrationData, paymentData) {
+export async function generateAndSaveWorkshopPDF(registrationData, paymentData = {}) {
   try {
+    const regId = paymentData?.registrationId || paymentData?.paymentId || paymentData?.razorpay_payment_id || "N/A";
+    const orderRef = paymentData?.orderId || paymentData?.razorpay_order_id || "N/A";
+
     // 1. Save record to localStorage
     const bookingRecord = {
       fullName: registrationData.fullName,
       email: registrationData.email,
       phone: `${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}`.trim(),
-      paymentId: paymentData.razorpay_payment_id || "N/A",
-      orderId: paymentData.razorpay_order_id || "N/A",
-      amountPaid: "Rs. 1",
+      paymentId: regId,
+      orderId: orderRef,
+      amountPaid: "Free Pass",
       workshop: "The Art of Breathing Workshop",
       date: "Saturday, 31 October",
       time: "8:15 AM IST",
       savedAt: new Date().toISOString(),
-      status: "CONFIRMED & VERIFIED",
+      status: "CONFIRMED & REGISTERED",
     };
 
     try {
@@ -127,7 +130,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8.5);
     doc.setFont("helvetica", "bold");
-    doc.text("PAYMENT VERIFIED", pageWidth - 53, 18);
+    doc.text("REGISTRATION PASS", pageWidth - 53, 18);
     doc.setFontSize(7.5);
     doc.text("SEAT CONFIRMED", pageWidth - 50, 23);
 
@@ -185,7 +188,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
-    doc.text("SESSION & PAYMENT RECEIPT", cardX + 6, cardY + 49.5);
+    doc.text("SESSION & ADMISSION RECEIPT", cardX + 6, cardY + 49.5);
 
     doc.setTextColor(...textDark);
 
@@ -217,27 +220,27 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData) 
 
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...primaryDark);
-    doc.text("Payment Amount:", payBoxX + 6, payBoxY + 10);
-    doc.setFontSize(13);
+    doc.text("Access Pass:", payBoxX + 6, payBoxY + 10);
+    doc.setFontSize(12);
     doc.setTextColor(...goldAccent);
-    doc.text("Rs. 1 (INR)", payBoxX + 50, payBoxY + 10);
+    doc.text("FREE PASS", payBoxX + 50, payBoxY + 10);
 
     doc.setFontSize(9.5);
     doc.setTextColor(...textDark);
     doc.setFont("helvetica", "bold");
-    doc.text("Payment ID:", payBoxX + 6, payBoxY + 19);
+    doc.text("Registration ID:", payBoxX + 6, payBoxY + 19);
     doc.setFont("helvetica", "normal");
-    doc.text(String(paymentData.razorpay_payment_id || "Direct Verified"), payBoxX + 50, payBoxY + 19);
+    doc.text(String(regId), payBoxX + 50, payBoxY + 19);
 
     doc.setFont("helvetica", "bold");
-    doc.text("Order ID:", payBoxX + 6, payBoxY + 27);
+    doc.text("Pass Ref:", payBoxX + 6, payBoxY + 27);
     doc.setFont("helvetica", "normal");
-    doc.text(String(paymentData.razorpay_order_id || "Direct Pass"), payBoxX + 50, payBoxY + 27);
+    doc.text(String(orderRef), payBoxX + 50, payBoxY + 27);
 
     doc.setFont("helvetica", "bold");
-    doc.text("Payment Status:", payBoxX + 6, payBoxY + 35);
+    doc.text("Status:", payBoxX + 6, payBoxY + 35);
     doc.setTextColor(34, 139, 34);
-    doc.text("SUCCESSFUL & VERIFIED ✓", payBoxX + 50, payBoxY + 35);
+    doc.text("CONFIRMED & REGISTERED ✓", payBoxX + 50, payBoxY + 35);
 
     // Section 3: Preparation & Guidelines Box
     const noteY = cardY + cardHeight + 8;

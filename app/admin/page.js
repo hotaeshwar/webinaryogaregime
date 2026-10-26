@@ -15,7 +15,6 @@ import {
   getTransactionsList,
   saveTransaction,
   deleteTransaction,
-  syncRazorpayToFirestore,
 } from "@/lib/transactionService";
 import { sendRegistrationEmail } from "@/lib/emailService";
 import {
@@ -79,7 +78,6 @@ export default function AdminPage() {
   const [transactions, setTransactions] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [syncingRazorpay, setSyncingRazorpay] = useState(false);
   const [creatingTest, setCreatingTest] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
@@ -132,9 +130,6 @@ export default function AdminPage() {
     }
 
     setDataLoading(true);
-
-    // Initial background sync with Razorpay to ensure complete data freshness
-    syncRazorpayToFirestore().catch((e) => console.warn("Initial background sync warning:", e));
 
     const unsubscribe = subscribeToTransactions(
       (list) => {
@@ -223,35 +218,6 @@ export default function AdminPage() {
     }
   };
 
-  // Sync with Razorpay API directly and persist to Cloud Firestore
-  const handleSyncRazorpay = async () => {
-    setSyncingRazorpay(true);
-    setStatusMessage(null);
-    try {
-      const res = await syncRazorpayToFirestore();
-      const updated = await getTransactionsList();
-      if (updated.data) {
-        setTransactions(updated.data);
-      }
-      setStatusMessage({
-        type: "success",
-        text: res.success
-          ? `Synced ${res.count} transactions from Razorpay into Firestore!`
-          : `Sync completed. Current records: ${updated.data?.length || 0}`,
-      });
-      setTimeout(() => setStatusMessage(null), 6000);
-    } catch (err) {
-      console.error("Sync error:", err);
-      setStatusMessage({
-        type: "error",
-        text: `Sync error: ${err.message || "Failed to connect to Razorpay"}`,
-      });
-      setTimeout(() => setStatusMessage(null), 6000);
-    } finally {
-      setSyncingRazorpay(false);
-    }
-  };
-
   // Create Sample / Test Transaction
   const handleCreateTestTx = async () => {
     setCreatingTest(true);
@@ -265,8 +231,11 @@ export default function AdminPage() {
         whatsappNumber: `98765${randomSuffix}`,
       };
       const testPayData = {
-        razorpay_payment_id: `pay_test_${Date.now().toString(36)}_${randomSuffix}`,
-        razorpay_order_id: `order_test_${Date.now().toString(36)}`,
+        registrationId: `reg_test_${Date.now().toString(36)}_${randomSuffix}`,
+        orderId: `pass_test_${Date.now().toString(36)}`,
+        razorpay_payment_id: `reg_test_${Date.now().toString(36)}_${randomSuffix}`,
+        razorpay_order_id: `pass_test_${Date.now().toString(36)}`,
+        amount: 0,
       };
 
       const result = await saveTransaction(testRegData, testPayData);
@@ -340,9 +309,12 @@ export default function AdminPage() {
         phone: tx.phone || tx.whatsappNumber,
       };
       const payData = {
+        registrationId: tx.registrationId || tx.paymentId,
+        paymentId: tx.paymentId,
+        orderId: tx.orderId,
         razorpay_payment_id: tx.paymentId,
         razorpay_order_id: tx.orderId,
-        amount: tx.amount || 1,
+        amount: tx.amount || 0,
       };
 
       const res = await sendRegistrationEmail(regData, payData);
@@ -393,11 +365,11 @@ ATTENDEE DETAILS:
 - Email: ${tx.email || "N/A"}
 - Contact: ${tx.countryCode || "+91"} ${tx.whatsappNumber || tx.phone || "N/A"}
 
-TRANSACTION AND PAYMENT DETAILS:
-- Amount Paid: Rs. ${tx.amount || 1} INR
-- Payment Status: Verified and Confirmed (${tx.status || "SUCCESS"})
-- Razorpay Payment ID: ${tx.paymentId || "N/A"}
-- Razorpay Order ID: ${tx.orderId || "N/A"}
+REGISTRATION AND ACCESS DETAILS:
+- Access Pass: ${tx.amount ? `Rs. ${tx.amount} INR` : "Free Pass"}
+- Status: Confirmed & Registered (${tx.status || "CONFIRMED"})
+- Registration ID: ${tx.registrationId || tx.paymentId || "N/A"}
+- Pass Reference: ${tx.orderId || "N/A"}
 - Registration Date: ${dateFormatted}${timeFormatted}
 
 SESSION GUIDELINES:
@@ -506,8 +478,8 @@ Yogaregime Team`;
       "WhatsApp Number",
       "Workshop",
       "Amount (INR)",
-      "Razorpay Payment ID",
-      "Razorpay Order ID",
+      "Registration ID",
+      "Pass Reference / Order ID",
       "Status",
     ];
 
@@ -860,20 +832,20 @@ Yogaregime Team`;
               <span>{creatingTest ? "Saving..." : "Test Record"}</span>
             </button>
 
-            {/* Sync Razorpay Button */}
+            {/* Sync Cloud Button */}
             <button
-              onClick={handleSyncRazorpay}
-              disabled={syncingRazorpay}
-              title="Fetch all transactions directly from Razorpay & save to Cloud Firestore"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              title="Fetch latest registrations from Cloud Firestore"
               className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-blue-500/30 bg-blue-50 hover:bg-blue-100 text-[11px] sm:text-xs font-bold text-blue-800 transition-all cursor-pointer shadow-xs"
             >
-              {syncingRazorpay ? (
+              {refreshing ? (
                 <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
               )}
-              <span className="hidden sm:inline">{syncingRazorpay ? "Syncing..." : "Sync Razorpay"}</span>
-              <span className="sm:hidden">{syncingRazorpay ? "..." : "Sync"}</span>
+              <span className="hidden sm:inline">{refreshing ? "Syncing..." : "Sync Cloud"}</span>
+              <span className="sm:hidden">{refreshing ? "..." : "Sync"}</span>
             </button>
 
             {/* Refresh Button */}
@@ -1253,8 +1225,8 @@ Yogaregime Team`;
                       <th className="py-3 px-4">Date & Time</th>
                       <th className="py-3 px-4">Attendee</th>
                       <th className="py-3 px-4">Contact / Phone</th>
-                      <th className="py-3 px-4">Amount</th>
-                      <th className="py-3 px-4">Payment ID</th>
+                      <th className="py-3 px-4">Access Pass</th>
+                      <th className="py-3 px-4">Registration ID</th>
                       <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
@@ -1296,8 +1268,8 @@ Yogaregime Team`;
                             </div>
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="font-extrabold text-wellness-primary font-mono text-sm">
-                              ₹{tx.amount || 1}
+                            <span className="font-extrabold text-emerald-700 font-mono text-xs">
+                              {tx.amount ? `₹${tx.amount}` : "Free Pass"}
                             </span>
                           </td>
                           <td className="py-3.5 px-4">
@@ -1413,25 +1385,25 @@ Yogaregime Team`;
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
-                  <span className="text-wellness-muted font-medium">Amount:</span>
-                  <span className="text-wellness-primary font-extrabold font-mono text-base">
-                    ₹{selectedTx.amount || 1}
+                  <span className="text-wellness-muted font-medium">Access:</span>
+                  <span className="text-emerald-700 font-extrabold font-mono text-xs">
+                    {selectedTx.amount ? `₹${selectedTx.amount}` : "Free Pass"}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
-                  <span className="text-wellness-muted font-medium">Payment Date:</span>
+                  <span className="text-wellness-muted font-medium">Date:</span>
                   <span className="text-wellness-dark font-semibold text-right">
                     {selectedTx.dateString} {selectedTx.timeString ? `at ${selectedTx.timeString}` : ""}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
-                  <span className="text-wellness-muted font-medium">Payment ID:</span>
+                  <span className="text-wellness-muted font-medium">Registration ID:</span>
                   <span className="text-wellness-dark font-mono text-[11px] break-all text-right max-w-[180px]">
-                    {selectedTx.paymentId}
+                    {selectedTx.registrationId || selectedTx.paymentId}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
-                  <span className="text-wellness-muted font-medium">Order ID:</span>
+                  <span className="text-wellness-muted font-medium">Pass Ref:</span>
                   <span className="text-wellness-dark font-mono text-[11px] break-all text-right max-w-[180px]">
                     {selectedTx.orderId}
                   </span>
@@ -1440,7 +1412,7 @@ Yogaregime Team`;
                   <span className="text-wellness-muted font-medium">Status:</span>
                   <span className="text-emerald-700 font-bold flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    Verified & Paid
+                    Confirmed & Registered
                   </span>
                 </div>
               </div>

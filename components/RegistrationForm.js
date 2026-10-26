@@ -48,10 +48,8 @@ export default function RegistrationForm() {
     termsAccepted: false,
   });
 
-  // Flow State
-  // 'idle' | 'creating_order' | 'checkout_open' | 'verifying' | 'success' | 'failed'
-  const [paymentStatus, setPaymentStatus] = useState("idle");
-  const [progressStage, setProgressStage] = useState(0);
+  // Flow State: 'idle' | 'submitting' | 'success' | 'failed'
+  const [registrationStatus, setRegistrationStatus] = useState("idle");
 
   // Success payload
   const [verifiedPaymentData, setVerifiedPaymentData] = useState(null);
@@ -127,8 +125,8 @@ export default function RegistrationForm() {
     }));
   };
 
-  // Main Registration & Payment Handler
-  const handleRegisterAndPay = async (e) => {
+  // Main Registration Handler (Free Direct Confirmation)
+  const handleRegister = async (e) => {
     if (e) e.preventDefault();
 
     // Mark all as touched to display errors if any
@@ -146,163 +144,90 @@ export default function RegistrationForm() {
       return;
     }
 
-    // Check if Razorpay SDK is loaded
-    if (typeof window === "undefined" || !window.Razorpay) {
-      showToast(
-        "Payment gateway could not be loaded. Please refresh and try again.",
-        "error"
-      );
-      return;
-    }
-
     try {
-      setPaymentStatus("checkout_open");
-      setProgressStage(2); // 50% Checkout opened
-      showToast("Opening secure Razorpay checkout...", "info");
+      setRegistrationStatus("submitting");
+      showToast("Confirming your registration...", "info");
 
-      const cleanPhone = `${formData.countryCode}${formData.whatsappNumber.replace(/\D/g, "")}`;
-      const razorpayKey =
-        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_Tb4Km1evAI6DKr";
+      const randomSuffix = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const timestamp = Date.now().toString(36).toUpperCase();
+      const regId = `REG_${timestamp}_${randomSuffix}`;
+      const orderId = `PASS_${timestamp}`;
 
-      // Fixed ₹1 (100 paise) client-side
-      const orderAmount = 100;
-      const orderCurrency = "INR";
-
-      // Open Razorpay Standard Web Checkout Modal
-      const options = {
-        key: razorpayKey,
-        amount: orderAmount,
-        currency: orderCurrency,
-        name: "The Art of Breathing Workshop",
-        description: "Workshop Registration (₹1)",
-        image: typeof window !== "undefined" && !window.location.hostname.includes("localhost") ? "/logo1.png" : undefined,
-        prefill: {
-          name: formData.fullName.trim(),
-          email: formData.email.trim(),
-          contact: cleanPhone,
-        },
-        notes: {
-          workshop: "The Art of Breathing Workshop",
-          attendee_name: formData.fullName.trim(),
-          attendee_email: formData.email.trim(),
-          attendee_phone: cleanPhone,
-        },
-        theme: {
-          color: "#1A4D3E",
-        },
-        modal: {
-          ondismiss: function () {
-            setPaymentStatus("failed");
-            setProgressStage(0);
-            showToast(
-              "Payment cancelled. Your registration has not been completed.",
-              "warning"
-            );
-          },
-        },
-        handler: function (razorpayResponse) {
-          const paymentId = razorpayResponse?.razorpay_payment_id;
-          const returnedOrderId =
-            razorpayResponse?.razorpay_order_id ||
-            `DIRECT_${Date.now().toString(36).toUpperCase()}`;
-
-          if (!paymentId) {
-            setPaymentStatus("failed");
-            setProgressStage(0);
-            showToast("Payment was not completed. Please try again.", "error");
-            return;
-          }
-
-          const payData = {
-            razorpay_payment_id: paymentId,
-            razorpay_order_id: returnedOrderId,
-            amount: 1,
-          };
-
-          // Save transaction to Firebase Firestore & local storage immediately
-          saveTransaction(formData, payData).catch((err) => {
-            console.warn("Background saveTransaction error:", err);
-          });
-
-          // Dispatch confirmation email via EmailJS immediately
-          sendRegistrationEmail(formData, payData).catch((err) => {
-            console.warn("Background sendRegistrationEmail error:", err);
-          });
-
-          // Mark payment 100% verified & confirmed
-          setProgressStage(4); // 100% Confirmed
-          setPaymentStatus("success");
-          setVerifiedPaymentData(payData);
-          showToast("Payment Successful! Booking Confirmed ✓", "success");
-        },
+      // Complete registration data payload (preserving fields for email and PDF)
+      const regData = {
+        registrationId: regId,
+        paymentId: regId,
+        orderId: orderId,
+        razorpay_payment_id: regId,
+        razorpay_order_id: orderId,
+        amount: 0,
+        status: "CONFIRMED",
       };
 
-      const rzp = new window.Razorpay(options);
-
-      // Handle payment failure event
-      rzp.on("payment.failed", function (response) {
-        console.error("Razorpay Payment Failed:", response.error);
-        setPaymentStatus("failed");
-        setProgressStage(0);
-        const errDesc =
-          response.error?.description || "Payment failed. Please try again.";
-        showToast(errDesc, "error");
+      // 1. Save registration to Firebase Firestore & local storage
+      await saveTransaction(formData, regData).catch((err) => {
+        console.warn("Background saveTransaction error:", err);
       });
 
-      rzp.open();
+      // 2. Dispatch confirmation email via EmailJS immediately
+      await sendRegistrationEmail(formData, regData).catch((err) => {
+        console.warn("Background sendRegistrationEmail error:", err);
+      });
+
+      // 3. Mark registration confirmed
+      setRegistrationStatus("success");
+      setVerifiedPaymentData(regData);
+      showToast("Registration Confirmed! Details sent to your email ✓", "success");
     } catch (err) {
       console.error("Registration error:", err);
-      setPaymentStatus("failed");
-      setProgressStage(0);
+      setRegistrationStatus("failed");
       showToast(
-        err.message ||
-          "Could not open payment gateway. Please try again.",
+        err.message || "Could not complete registration. Please try again.",
         "error"
       );
     }
   };
 
   const handleResetFlow = () => {
-    setPaymentStatus("idle");
-    setProgressStage(0);
+    setRegistrationStatus("idle");
     setVerifiedPaymentData(null);
   };
 
   // Button text and state
   const getButtonContent = () => {
-    switch (paymentStatus) {
-      case "checkout_open":
+    switch (registrationStatus) {
+      case "submitting":
         return (
           <>
-            <Sparkles className="w-5 h-5 text-wellness-goldLight" />
-            <span>Complete Payment in Razorpay</span>
+            <Loader2 className="w-5 h-5 animate-spin text-white" />
+            <span>Confirming Registration...</span>
           </>
         );
       case "success":
         return (
           <>
             <CheckCircle2 className="w-5 h-5 text-emerald-300" />
-            <span>Payment Successful ✓</span>
+            <span>Registration Confirmed ✓</span>
           </>
         );
       case "failed":
         return (
           <>
-            <span>Try Payment Again (₹1)</span>
+            <span>Retry Registration</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </>
         );
       default:
         return (
           <>
-            <span>Register & Pay ₹1</span>
+            <span>Register Now</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </>
         );
     }
   };
 
-  const isProcessing = paymentStatus === "checkout_open";
+  const isProcessing = registrationStatus === "submitting";
 
   return (
     <div className="relative">
@@ -312,8 +237,8 @@ export default function RegistrationForm() {
         onClose={closeToast}
       />
 
-      {/* Payment Success Modal after HMAC verification */}
-      {paymentStatus === "success" && verifiedPaymentData && (
+      {/* Registration Success Modal */}
+      {registrationStatus === "success" && verifiedPaymentData && (
         <PaymentSuccessModal
           registrationData={formData}
           paymentData={verifiedPaymentData}
@@ -341,13 +266,8 @@ export default function RegistrationForm() {
           </p>
         </div>
 
-        {/* Optional Animated Progress Indicator when active */}
-        {paymentStatus !== "idle" && (
-          <PaymentProgress stage={progressStage} />
-        )}
-
         {/* Registration Form */}
-        <form onSubmit={handleRegisterAndPay} noValidate className="space-y-5">
+        <form onSubmit={handleRegister} noValidate className="space-y-5">
           {/* Full Name Field */}
           <div className="space-y-1.5">
             <label
@@ -515,7 +435,7 @@ export default function RegistrationForm() {
                 className="mt-1 w-4.5 h-4.5 rounded border-wellness-border text-wellness-primary focus:ring-wellness-primary/20 accent-wellness-primary cursor-pointer shrink-0"
               />
               <span className="text-xs text-wellness-muted leading-relaxed">
-                I understand this is an interactive online workshop on Saturday, 31st Oct (8:15 AM) and agree to complete the ₹1 token fee to reserve my seat.
+                I understand this is an interactive online workshop on Saturday, 31st Oct (8:15 AM) and agree to reserve my seat.
               </span>
             </label>
             {touched.termsAccepted && formErrors.termsAccepted && (
@@ -543,12 +463,12 @@ export default function RegistrationForm() {
             {/* Micro-copy and Security Badges */}
             <div className="space-y-1.5 text-center">
               <div className="flex items-center justify-center gap-1.5 text-xs text-wellness-muted font-medium">
-                <Lock className="w-3.5 h-3.5 text-wellness-gold" />
-                <span>Your registration is confirmed only after successful payment.</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-wellness-primary" />
+                <span>Instant confirmation & workshop pass delivered to your registered email.</span>
               </div>
               <div className="flex items-center justify-center gap-1 text-[11px] text-wellness-muted/80">
                 <ShieldCheck className="w-3.5 h-3.5 text-wellness-primary" />
-                <span>Secure 256-bit encrypted checkout powered by Razorpay</span>
+                <span>Free registration • Live interactive session on Saturday</span>
               </div>
             </div>
           </div>

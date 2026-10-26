@@ -29,7 +29,7 @@ export default function PaymentProgress({ stage = 0 }) {
           {stage === 4 && (
             <CheckCircle className="w-3.5 h-3.5 text-wellness-primary" />
           )}
-          Payment Progress
+          Registration Progress
         </span>
         <span className="text-xs font-bold text-wellness-dark font-mono bg-wellness-surface px-2 py-0.5 rounded-md border border-wellness-border">
           {currentPercent}%
@@ -47,11 +47,11 @@ export default function PaymentProgress({ stage = 0 }) {
       {/* Stage Description */}
       <div className="mt-2 text-center">
         <p className="text-xs font-medium text-wellness-muted">
-          {stage === 0 && "Ready to proceed with registration & payment"}
-          {stage === 1 && "Opening secure Razorpay checkout..."}
-          {stage === 2 && "Razorpay checkout modal is active..."}
-          {stage === 3 && "Processing payment confirmation..."}
-          {stage === 4 && "✓ Payment verified & registration confirmed!"}
+          {stage === 0 && "Ready to proceed with registration"}
+          {stage === 1 && "Validating your details..."}
+          {stage === 2 && "Processing registration..."}
+          {stage === 3 && "Sending confirmation pass..."}
+          {stage === 4 && "✓ Registration confirmed!"}
         </p>
       </div>
     </div>

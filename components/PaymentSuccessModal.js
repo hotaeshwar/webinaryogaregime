@@ -90,6 +90,9 @@ export default function PaymentSuccessModal({
     }
   }, [countdown, onReset]);
 
+  const regId = paymentData?.registrationId || paymentData?.paymentId || paymentData?.razorpay_payment_id || "N/A";
+  const orderRef = paymentData?.orderId || paymentData?.razorpay_order_id || "N/A";
+
   const confirmationDetailsText = `WORKSHOP REGISTRATION CONFIRMATION
 The Art of Breathing Workshop
 
@@ -101,12 +104,12 @@ ATTENDEE DETAILS:
 WORKSHOP DETAILS:
 - Date: Saturday, 31st October
 - Time: 8:15 AM IST (Online Live Interactive)
-- Fee Paid: Rs. 1
+- Access Pass: Free Admission
 
-PAYMENT DETAILS:
-- Payment ID: ${paymentData.razorpay_payment_id}
-- Order ID: ${paymentData.razorpay_order_id}
-- Status: Confirmed & Paid
+REGISTRATION DETAILS:
+- Registration ID: ${regId}
+- Pass Reference: ${orderRef}
+- Status: Confirmed & Registered
 
 Helpline Support: support@yogaregime.com • +91 98769 63204`;
 
@@ -134,7 +137,7 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
             <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-300 animate-pulse-subtle" />
           </div>
           <span className="inline-block px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/25 text-emerald-200 border border-emerald-400/30 uppercase tracking-widest mb-1">
-            Payment Verified ✓
+            Registration Confirmed ✓
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold font-serif leading-tight">
             Registration Confirmed!
@@ -196,25 +199,25 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
               </span>
             </div>
             <div className="flex justify-between items-center py-0.5 border-b border-wellness-border/50">
-              <span className="text-wellness-muted font-medium">Amount Paid:</span>
-              <span className="text-wellness-primary font-extrabold text-sm sm:text-base font-mono">
-                ₹1
+              <span className="text-wellness-muted font-medium">Access Pass:</span>
+              <span className="text-emerald-700 font-extrabold text-sm sm:text-base font-mono">
+                Free Pass
               </span>
             </div>
             <div className="flex justify-between items-start py-0.5 border-b border-wellness-border/50 text-[11px] sm:text-xs">
               <span className="text-wellness-muted font-medium shrink-0 mr-2">
-                Payment ID:
+                Registration ID:
               </span>
               <span className="text-wellness-dark font-mono font-semibold break-all text-right">
-                {paymentData.razorpay_payment_id}
+                {regId}
               </span>
             </div>
             <div className="flex justify-between items-start py-0.5 text-[11px] sm:text-xs">
               <span className="text-wellness-muted font-medium shrink-0 mr-2">
-                Order ID:
+                Pass Reference:
               </span>
               <span className="text-wellness-dark font-mono font-semibold break-all text-right">
-                {paymentData.razorpay_order_id}
+                {orderRef}
               </span>
             </div>
           </div>

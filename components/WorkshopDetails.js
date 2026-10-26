@@ -122,11 +122,11 @@ export default function WorkshopDetails() {
         </div>
       </div>
 
-      {/* Workshop Price Highlight Box */}
+      {/* Workshop Access Highlight Box */}
       <div className="p-5 rounded-2xl bg-gradient-to-r from-wellness-primaryDark via-wellness-primary to-wellness-primaryLight text-white shadow-premium flex items-center justify-between">
         <div className="space-y-1">
           <span className="text-xs uppercase tracking-wider text-wellness-goldLight/80 font-medium">
-            Exclusive Access Pass
+            Complimentary Access Pass
           </span>
           <p className="text-sm text-gray-200">
             Includes live interactive masterclass & Q&A
@@ -134,9 +134,9 @@ export default function WorkshopDetails() {
         </div>
         <div className="text-right">
           <span className="text-xs line-through text-gray-300 mr-2">₹499</span>
-          <span className="text-3xl font-extrabold text-wellness-goldLight">₹1</span>
+          <span className="text-3xl font-extrabold text-wellness-goldLight">FREE</span>
           <span className="block text-[11px] text-gray-200 uppercase tracking-wider font-semibold">
-            Token Fee
+            Limited Seats
           </span>
         </div>
       </div>
