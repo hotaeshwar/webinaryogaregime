@@ -366,7 +366,7 @@ ATTENDEE DETAILS:
 - Contact: ${tx.countryCode || "+91"} ${tx.whatsappNumber || tx.phone || "N/A"}
 
 REGISTRATION AND ACCESS DETAILS:
-- Access Pass: ${tx.amount ? `Rs. ${tx.amount} INR` : "Free Pass"}
+- Access Pass: ${Number(tx.amount) > 0 ? `Rs. ${tx.amount} INR` : "Free Pass"}
 - Status: Confirmed & Registered (${tx.status || "CONFIRMED"})
 - Registration ID: ${tx.registrationId || tx.paymentId || "N/A"}
 - Pass Reference: ${tx.orderId || "N/A"}
@@ -455,13 +455,14 @@ Yogaregime Team`;
   const metrics = useMemo(() => {
     const totalCount = transactions.length;
     const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+    const freeCount = transactions.filter((tx) => !tx.amount || Number(tx.amount) === 0).length;
 
     const todayIST = getISTDateStr(Date.now());
     const todayCount = transactions.filter((tx) => {
       return getISTDateStr(tx.isoDate || tx.clientTimestamp) === todayIST;
     }).length;
 
-    return { totalCount, totalRevenue, todayCount };
+    return { totalCount, totalRevenue, freeCount, todayCount };
   }, [transactions]);
 
   // Export to CSV formatted perfectly for Excel
@@ -524,10 +525,10 @@ Yogaregime Team`;
         formatAsTextCell(tx.countryCode || "+91"),
         formatAsTextCell(tx.whatsappNumber || ""),
         escapeCSV(tx.workshop || "The Art of Breathing Workshop"),
-        tx.amount || 1,
+        Number(tx.amount) > 0 ? Number(tx.amount) : "Free Pass",
         formatAsTextCell(tx.paymentId || ""),
         formatAsTextCell(tx.orderId || ""),
-        escapeCSV(tx.status || "SUCCESS"),
+        escapeCSV(tx.status || "CONFIRMED"),
       ];
     });
 
@@ -929,17 +930,17 @@ Yogaregime Team`;
             </div>
           </div>
 
-          {/* Card 2: Total Revenue */}
+          {/* Card 2: Pass Type & Revenue */}
           <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-wellness-border shadow-xs flex items-center justify-between">
             <div>
               <p className="text-[10px] sm:text-xs font-bold text-wellness-muted uppercase tracking-wider">
-                Revenue
+                Pass Type / Revenue
               </p>
               <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-wellness-primary mt-0.5 sm:mt-1 font-mono">
-                ₹{metrics.totalRevenue}
+                {metrics.totalRevenue > 0 ? `₹${metrics.totalRevenue}` : "FREE"}
               </h3>
-              <p className="text-[10px] sm:text-[11px] text-wellness-muted font-medium mt-0.5 sm:mt-1 truncate">
-                ₹1 token fee
+              <p className="text-[10px] sm:text-[11px] text-emerald-600 font-semibold mt-0.5 sm:mt-1 truncate">
+                {metrics.freeCount > 0 ? `${metrics.freeCount} Free Passes Registered` : "Complimentary Access"}
               </p>
             </div>
             <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700 shrink-0">
@@ -1150,7 +1151,7 @@ Yogaregime Team`;
                             Amount Paid
                           </span>
                           <span className="font-extrabold text-wellness-primary font-mono text-sm">
-                            ₹{tx.amount || 1}
+                            {Number(tx.amount) > 0 ? `₹${tx.amount}` : "Free Pass"}
                           </span>
                           <span className="text-[10px] text-emerald-700 block font-medium">
                             {tx.countryCode || "+91"} {attendeeNumber}
@@ -1269,7 +1270,7 @@ Yogaregime Team`;
                           </td>
                           <td className="py-3.5 px-4">
                             <span className="font-extrabold text-emerald-700 font-mono text-xs">
-                              {tx.amount ? `₹${tx.amount}` : "Free Pass"}
+                              {Number(tx.amount) > 0 ? `₹${tx.amount}` : "Free Pass"}
                             </span>
                           </td>
                           <td className="py-3.5 px-4">
@@ -1387,7 +1388,7 @@ Yogaregime Team`;
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
                   <span className="text-wellness-muted font-medium">Access:</span>
                   <span className="text-emerald-700 font-extrabold font-mono text-xs">
-                    {selectedTx.amount ? `₹${selectedTx.amount}` : "Free Pass"}
+                    {Number(selectedTx.amount) > 0 ? `₹${selectedTx.amount}` : "Free Pass"}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
