@@ -209,6 +209,11 @@ export default function AdminPage() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.removeItem("workshop_my_transactions");
+        } catch (e) {}
+      }
       const res = await getTransactionsList();
       setTransactions(res.data || []);
     } catch (err) {
