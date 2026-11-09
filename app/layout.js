@@ -31,7 +31,7 @@ export const metadata = {
   ],
   openGraph: {
     title: "The Art of Breathing Workshop",
-    description: "Online 90-Min Intensive Masterclass on Saturday, 14th November at 7:00 PM.",
+    description: "Online on Zoom (60 Minutes) Masterclass on Saturday, 14th Nov at 07:00 P.M.",
     type: "website",
   },
 };

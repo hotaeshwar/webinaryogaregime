@@ -102,8 +102,10 @@ ATTENDEE DETAILS:
 - Contact: ${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}
 
 WORKSHOP DETAILS:
-- Date: Saturday, 14th November
-- Time: 7:00 PM IST (Online Live Interactive)
+- Date: Saturday, 14th Nov
+- Time: 07:00 P.M. IST
+- Duration: 60 Minutes
+- Mode: Online on Zoom
 - Access Pass: Free Admission
 
 REGISTRATION DETAILS:
@@ -143,7 +145,7 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
             Registration Confirmed!
           </h2>
           <p className="text-xs sm:text-sm text-gray-200 mt-1">
-            The Art of Breathing Workshop • Sat, 14th Nov (7:00 PM)
+            The Art of Breathing Workshop • Sat, 14th Nov (07:00 P.M. • Zoom)
           </p>
 
           {/* 10-Second Timer Countdown Badge */}

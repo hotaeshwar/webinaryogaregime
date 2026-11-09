@@ -93,7 +93,7 @@ export default function WorkshopDetails() {
             </span>
           </div>
           <span className="text-sm font-bold text-wellness-dark leading-snug">
-            7:00 PM IST
+            07:00 P.M. IST
           </span>
         </div>
 
@@ -105,7 +105,7 @@ export default function WorkshopDetails() {
             </span>
           </div>
           <span className="text-sm font-bold text-wellness-dark leading-snug">
-            Online (Live)
+            Online on Zoom
           </span>
         </div>
 
@@ -117,7 +117,7 @@ export default function WorkshopDetails() {
             </span>
           </div>
           <span className="text-sm font-bold text-wellness-dark leading-snug">
-            90 Minutes
+            60 Minutes
           </span>
         </div>
       </div>

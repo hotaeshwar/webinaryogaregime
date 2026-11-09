@@ -360,9 +360,10 @@ Your registration for the upcoming live online masterclass is confirmed. Below a
 EVENT AND WORKSHOP DETAILS:
 - Workshop: The Art of Breathing
 - Topic: The Art of Breathing Masterclass
-- Date: Saturday, 14th November
-- Time: 7:00 PM IST (90 Minutes Live Interactive)
-- Mode: Online Live Session
+- Date: Saturday, 14th Nov
+- Time: 07:00 P.M. IST
+- Duration: 60 Minutes
+- Mode: Online on Zoom
 - Organizer Support: support@yogaregime.com
 
 ATTENDEE DETAILS:
@@ -380,7 +381,7 @@ REGISTRATION AND ACCESS DETAILS:
 SESSION GUIDELINES:
 1. Practice on an empty stomach or at least 2 hours after a light meal.
 2. Wear comfortable yoga attire and keep a yoga mat ready.
-3. Join 5-10 minutes prior to 7:00 PM IST.
+3. Join 5-10 minutes prior to 07:00 P.M. IST.
 
 The live meeting joining link will be shared to your registered email prior to the session start.
 
@@ -982,7 +983,7 @@ Yogaregime Team`;
               </h3>
               <p className="text-[10px] sm:text-[11px] text-gray-200 mt-0.5 flex items-center gap-1 truncate">
                 <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-wellness-goldLight shrink-0" />
-                <span>7:00 PM IST</span>
+                <span>07:00 P.M. IST</span>
               </p>
             </div>
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-wellness-goldLight shrink-0">
