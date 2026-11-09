@@ -51,8 +51,8 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
       orderId: orderRef,
       amountPaid: "Free Pass",
       workshop: "The Art of Breathing Workshop",
-      date: "Saturday, 31 October",
-      time: "8:15 AM IST",
+      date: "Saturday, 14 November",
+      time: "7:00 PM IST",
       savedAt: new Date().toISOString(),
       status: "CONFIRMED & REGISTERED",
     };
@@ -122,7 +122,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
 
     doc.setFontSize(9);
     doc.setTextColor(200, 220, 210);
-    doc.text("Saturday, 31st October • 8:15 AM IST (90 Minutes)", 52, 34);
+    doc.text("Saturday, 14th November • 7:00 PM IST (90 Minutes)", 52, 34);
 
     // Verified Stamp / Badge in top right
     doc.setFillColor(34, 139, 34);
@@ -201,7 +201,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
     doc.setFont("helvetica", "bold");
     doc.text("Date & Time:", cardX + 8, cardY + 68);
     doc.setFont("helvetica", "normal");
-    doc.text("Saturday, 31st Oct • 8:15 AM IST", cardX + 45, cardY + 68);
+    doc.text("Saturday, 14th Nov • 7:00 PM IST", cardX + 45, cardY + 68);
 
     doc.setFont("helvetica", "bold");
     doc.text("Format:", cardX + 8, cardY + 76);

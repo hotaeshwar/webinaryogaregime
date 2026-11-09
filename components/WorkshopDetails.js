@@ -81,7 +81,7 @@ export default function WorkshopDetails() {
             </span>
           </div>
           <span className="text-sm font-bold text-wellness-dark leading-snug">
-            Saturday, 31st Oct
+            Saturday, 14th Nov
           </span>
         </div>
 
@@ -93,7 +93,7 @@ export default function WorkshopDetails() {
             </span>
           </div>
           <span className="text-sm font-bold text-wellness-dark leading-snug">
-            8:15 AM IST
+            7:00 PM IST
           </span>
         </div>
 

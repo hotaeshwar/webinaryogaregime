@@ -64,7 +64,7 @@ export default function Home() {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-wellness-muted font-medium">
-            The Art of Breathing Workshop • Saturday, 31st Oct (8:15 AM IST)
+            The Art of Breathing Workshop • Saturday, 14th Nov (7:00 PM IST)
           </p>
         </div>
 
