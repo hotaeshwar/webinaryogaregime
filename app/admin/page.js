@@ -15,6 +15,7 @@ import {
   getTransactionsList,
   saveTransaction,
   deleteTransaction,
+  getRecordTimestamp,
 } from "@/lib/transactionService";
 import { sendRegistrationEmail } from "@/lib/emailService";
 import {
@@ -86,6 +87,21 @@ export default function AdminPage() {
   const [dateFilter, setDateFilter] = useState("all"); // 'all', 'today', 'last7days', 'custom'
   const [customDate, setCustomDate] = useState("");
   const [sortOrder, setSortOrder] = useState("desc"); // 'desc' (newest first) or 'asc'
+
+  // Multi-selection & Hide/Unhide state
+  const [hiddenIds, setHiddenIds] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("admin_hidden_tx_ids");
+        return new Set(stored ? JSON.parse(stored) : []);
+      } catch (e) {
+        return new Set();
+      }
+    }
+    return new Set();
+  });
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [visibilityFilter, setVisibilityFilter] = useState("active"); // 'active' (visible only), 'hidden' (hidden only), 'all' (all entries)
 
   // Selected Transaction Modal
   const [selectedTx, setSelectedTx] = useState(null);
@@ -277,6 +293,23 @@ export default function AdminPage() {
       const res = await deleteTransaction(tx);
       
       if (res.success) {
+        const txKey = String(tx.id || tx.paymentId || tx.registrationId || "");
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(txKey);
+          return next;
+        });
+        setHiddenIds((prev) => {
+          const next = new Set(prev);
+          next.delete(txKey);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("admin_hidden_tx_ids", JSON.stringify(Array.from(next)));
+            } catch (e) {}
+          }
+          return next;
+        });
+
         setTransactions((prev) =>
           prev.filter((item) => (item.id || item.paymentId) !== (tx.id || tx.paymentId))
         );
@@ -296,6 +329,98 @@ export default function AdminPage() {
     } finally {
       setTimeout(() => setStatusMessage(null), 4000);
     }
+  };
+
+  // Helper to persist hidden IDs to localStorage
+  const updateHiddenIds = (newSet) => {
+    setHiddenIds(newSet);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("admin_hidden_tx_ids", JSON.stringify(Array.from(newSet)));
+      } catch (e) {}
+    }
+  };
+
+  const getTxKey = (tx) => String(tx?.id || tx?.paymentId || tx?.registrationId || "");
+
+  // Selection handlers
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAll = (items) => {
+    const allKeys = items.map(getTxKey).filter(Boolean);
+    const allSelected = allKeys.length > 0 && allKeys.every((k) => selectedIds.has(k));
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(allKeys));
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  // Hide selected entries
+  const handleHideSelected = () => {
+    if (selectedIds.size === 0) return;
+    const nextHidden = new Set(hiddenIds);
+    selectedIds.forEach((id) => nextHidden.add(id));
+    updateHiddenIds(nextHidden);
+    const count = selectedIds.size;
+    setSelectedIds(new Set());
+    setStatusMessage({
+      type: "success",
+      text: `${count} ${count === 1 ? "entry" : "entries"} hidden from active view.`,
+    });
+    setTimeout(() => setStatusMessage(null), 3500);
+  };
+
+  // Unhide selected entries
+  const handleUnhideSelected = () => {
+    if (selectedIds.size === 0) return;
+    const nextHidden = new Set(hiddenIds);
+    selectedIds.forEach((id) => nextHidden.delete(id));
+    updateHiddenIds(nextHidden);
+    const count = selectedIds.size;
+    setSelectedIds(new Set());
+    setStatusMessage({
+      type: "success",
+      text: `${count} ${count === 1 ? "entry" : "entries"} unhidden and restored to active view.`,
+    });
+    setTimeout(() => setStatusMessage(null), 3500);
+  };
+
+  // Toggle single entry hide/unhide
+  const handleToggleHide = (tx) => {
+    const key = getTxKey(tx);
+    if (!key) return;
+    const isCurrentlyHidden = hiddenIds.has(key);
+    const nextHidden = new Set(hiddenIds);
+    if (isCurrentlyHidden) {
+      nextHidden.delete(key);
+      setStatusMessage({
+        type: "success",
+        text: `Entry for "${tx.fullName || key}" restored to active view.`,
+      });
+    } else {
+      nextHidden.add(key);
+      setStatusMessage({
+        type: "success",
+        text: `Entry for "${tx.fullName || key}" hidden from active view.`,
+      });
+    }
+    updateHiddenIds(nextHidden);
+    setTimeout(() => setStatusMessage(null), 3500);
   };
 
   // Send / Resend Email Confirmation via EmailJS
@@ -417,6 +542,12 @@ Yogaregime Team`;
 
     return transactions
       .filter((tx) => {
+        // Visibility Filter (Active, Hidden, All)
+        const key = getTxKey(tx);
+        const isHidden = hiddenIds.has(key);
+        if (visibilityFilter === "active" && isHidden) return false;
+        if (visibilityFilter === "hidden" && !isHidden) return false;
+
         // Search query matching
         const q = searchQuery.toLowerCase().trim();
         const matchesSearch =
@@ -433,8 +564,8 @@ Yogaregime Team`;
         // Date Filtering
         if (dateFilter === "all") return true;
 
-        const txISTDate = getISTDateStr(tx.isoDate || tx.clientTimestamp);
-        const txTimestamp = tx.clientTimestamp || (tx.isoDate ? new Date(tx.isoDate).getTime() : 0);
+        const txTimestamp = getRecordTimestamp(tx);
+        const txISTDate = getISTDateStr(txTimestamp || tx.isoDate || tx.clientTimestamp);
 
         if (dateFilter === "today") {
           return txISTDate === todayIST;
@@ -451,25 +582,28 @@ Yogaregime Team`;
         return true;
       })
       .sort((a, b) => {
-        const timeA = a.clientTimestamp || (a.isoDate ? new Date(a.isoDate).getTime() : 0);
-        const timeB = b.clientTimestamp || (b.isoDate ? new Date(b.isoDate).getTime() : 0);
+        const timeA = getRecordTimestamp(a);
+        const timeB = getRecordTimestamp(b);
         return sortOrder === "desc" ? timeB - timeA : timeA - timeB;
       });
-  }, [transactions, searchQuery, dateFilter, customDate, sortOrder]);
+  }, [transactions, searchQuery, dateFilter, customDate, sortOrder, visibilityFilter, hiddenIds]);
 
   // Summary Metrics
   const metrics = useMemo(() => {
     const totalCount = transactions.length;
+    const hiddenCount = transactions.filter((tx) => hiddenIds.has(getTxKey(tx))).length;
+    const activeCount = totalCount - hiddenCount;
     const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
     const freeCount = transactions.filter((tx) => !tx.amount || Number(tx.amount) === 0).length;
 
     const todayIST = getISTDateStr(Date.now());
     const todayCount = transactions.filter((tx) => {
-      return getISTDateStr(tx.isoDate || tx.clientTimestamp) === todayIST;
+      const ts = getRecordTimestamp(tx);
+      return getISTDateStr(ts || tx.isoDate || tx.clientTimestamp) === todayIST;
     }).length;
 
-    return { totalCount, totalRevenue, freeCount, todayCount };
-  }, [transactions]);
+    return { totalCount, activeCount, hiddenCount, totalRevenue, freeCount, todayCount };
+  }, [transactions, hiddenIds]);
 
   // Export to CSV formatted perfectly for Excel
   const handleExportCSV = () => {
@@ -488,6 +622,7 @@ Yogaregime Team`;
       "Registration ID",
       "Pass Reference / Order ID",
       "Status",
+      "Visibility",
     ];
 
     const escapeCSV = (str) => `"${String(str ?? "").replace(/"/g, '""')}"`;
@@ -535,6 +670,7 @@ Yogaregime Team`;
         formatAsTextCell(tx.paymentId || ""),
         formatAsTextCell(tx.orderId || ""),
         escapeCSV(tx.status || "CONFIRMED"),
+        hiddenIds.has(getTxKey(tx)) ? "Hidden" : "Active",
       ];
     });
 
@@ -921,14 +1057,19 @@ Yogaregime Team`;
           <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-wellness-border shadow-xs flex items-center justify-between">
             <div>
               <p className="text-[10px] sm:text-xs font-bold text-wellness-muted uppercase tracking-wider">
-                Registrations
+                Active Bookings
               </p>
               <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-wellness-dark mt-0.5 sm:mt-1 font-mono">
-                {metrics.totalCount}
+                {metrics.activeCount}
+                {metrics.hiddenCount > 0 && (
+                  <span className="text-[11px] font-semibold text-amber-600 ml-1.5 font-sans">
+                    ({metrics.hiddenCount} hidden)
+                  </span>
+                )}
               </h3>
               <p className="text-[10px] sm:text-[11px] text-emerald-600 font-medium mt-0.5 sm:mt-1 flex items-center gap-1">
                 <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                <span>Firestore Live</span>
+                <span>{metrics.totalCount} Total Recorded</span>
               </p>
             </div>
             <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
@@ -1018,6 +1159,47 @@ Yogaregime Team`;
 
           {/* Date Filter & Sort & Export */}
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+            {/* Visibility Mode Filter (Active, Hidden, All) */}
+            <div className="col-span-2 sm:col-span-auto inline-flex items-center p-0.5 rounded-xl border border-wellness-border bg-wellness-surface/70 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setVisibilityFilter("active")}
+                className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  visibilityFilter === "active"
+                    ? "bg-wellness-primary text-white shadow-xs"
+                    : "text-wellness-muted hover:text-wellness-dark"
+                }`}
+                title="Show active visible registrations"
+              >
+                Active ({metrics.activeCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibilityFilter("hidden")}
+                className={`inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  visibilityFilter === "hidden"
+                    ? "bg-amber-600 text-white shadow-xs"
+                    : "text-wellness-muted hover:text-wellness-dark"
+                }`}
+                title="Show hidden registrations"
+              >
+                <EyeOff className="w-3 h-3" />
+                <span>Hidden ({metrics.hiddenCount})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibilityFilter("all")}
+                className={`px-2.5 sm:px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                  visibilityFilter === "all"
+                    ? "bg-wellness-dark text-white shadow-xs"
+                    : "text-wellness-muted hover:text-wellness-dark"
+                }`}
+                title="Show all registrations including hidden"
+              >
+                All ({metrics.totalCount})
+              </button>
+            </div>
+
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
@@ -1041,10 +1223,10 @@ Yogaregime Team`;
             <button
               onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
               className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl border border-wellness-border bg-wellness-surface/60 hover:bg-wellness-border/50 text-xs font-semibold text-wellness-dark transition-colors cursor-pointer"
-              title="Toggle Sort Order"
+              title="Toggle Sort Order (Newest Fresh Registrations First)"
             >
               <ArrowUpDown className="w-3.5 h-3.5 text-wellness-primary" />
-              <span>{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
+              <span>{sortOrder === "desc" ? "Newest First" : "Oldest First"}</span>
             </button>
 
             {/* CSV Export Button */}
@@ -1058,6 +1240,47 @@ Yogaregime Team`;
             </button>
           </div>
         </div>
+
+        {/* Bulk Selection Action Bar */}
+        {selectedIds.size > 0 && (
+          <div className="bg-gradient-to-r from-wellness-primaryDark via-wellness-primary to-wellness-primaryLight text-white p-3.5 px-4 sm:px-6 rounded-2xl shadow-md border border-wellness-primary/40 flex flex-wrap items-center justify-between gap-3 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-wellness-goldLight animate-pulse" />
+              <span className="text-xs sm:text-sm font-bold">
+                {selectedIds.size} {selectedIds.size === 1 ? "entry" : "entries"} selected
+              </span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleHideSelected}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                title="Hide selected entries from active view"
+              >
+                <EyeOff className="w-3.5 h-3.5" />
+                <span>Hide Selected ({selectedIds.size})</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleUnhideSelected}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                title="Unhide and restore selected entries"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Unhide Selected ({selectedIds.size})</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleClearSelection}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-medium transition-colors cursor-pointer"
+                title="Deselect all"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Clear Selection</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Transactions Table & Mobile Cards */}
         <div className="bg-white rounded-2xl border border-wellness-border shadow-xs overflow-hidden">
@@ -1110,28 +1333,51 @@ Yogaregime Team`;
               {/* 1. MOBILE VIEW: Responsive Cards for Phones & Small Screens (< md) */}
               <div className="block md:hidden divide-y divide-wellness-border/60">
                 {filteredTransactions.map((tx, idx) => {
+                  const key = getTxKey(tx);
+                  const isSelected = selectedIds.has(key);
+                  const isHidden = hiddenIds.has(key);
                   const attendeeNumber = (tx.whatsappNumber || tx.phone || "").replace(/\D/g, "");
                   const isSendingThis = sendingEmailId === (tx.id || tx.paymentId);
 
                   return (
                     <div
-                      key={tx.id || tx.paymentId || idx}
-                      className="p-3.5 space-y-2.5 hover:bg-wellness-cream/20 transition-colors"
+                      key={key || idx}
+                      className={`p-3.5 space-y-2.5 transition-colors ${
+                        isSelected
+                          ? "bg-wellness-gold/10"
+                          : isHidden
+                          ? "bg-gray-50/70 opacity-75 hover:opacity-100"
+                          : "hover:bg-wellness-cream/20"
+                      }`}
                     >
-                      {/* Top Row: Attendee Name + Status Badge */}
+                      {/* Top Row: Checkbox + Attendee Name + Status Badge */}
                       <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-mono font-bold text-wellness-muted">
-                              #{idx + 1}
-                            </span>
-                            <h3 className="font-bold text-wellness-dark text-sm truncate">
-                              {tx.fullName || "N/A"}
-                            </h3>
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelect(key)}
+                            className="mt-0.5 w-4 h-4 rounded border-wellness-border text-wellness-primary focus:ring-wellness-primary/20 accent-wellness-primary cursor-pointer shrink-0"
+                            title="Select entry"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-mono font-bold text-wellness-muted">
+                                #{idx + 1}
+                              </span>
+                              <h3 className="font-bold text-wellness-dark text-sm truncate">
+                                {tx.fullName || "N/A"}
+                              </h3>
+                              {isHidden && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                  <EyeOff className="w-2.5 h-2.5" /> Hidden
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-wellness-muted truncate break-all">
+                              {tx.email || "No email"}
+                            </p>
                           </div>
-                          <p className="text-[11px] text-wellness-muted truncate break-all">
-                            {tx.email || "No email"}
-                          </p>
                         </div>
                         <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300/60">
                           <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
@@ -1204,6 +1450,19 @@ Yogaregime Team`;
                         </button>
 
                         <button
+                          type="button"
+                          onClick={() => handleToggleHide(tx)}
+                          className={`p-2 rounded-xl border text-xs font-semibold transition-colors cursor-pointer ${
+                            isHidden
+                              ? "bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300"
+                              : "bg-wellness-surface hover:bg-wellness-border/50 text-wellness-muted hover:text-wellness-dark border-wellness-border"
+                          }`}
+                          title={isHidden ? "Unhide entry" : "Hide entry"}
+                        >
+                          {isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        </button>
+
+                        <button
                           onClick={() => setSelectedTx(tx)}
                           className="px-3.5 py-2 rounded-xl bg-wellness-surface hover:bg-wellness-border/50 text-wellness-dark border border-wellness-border text-xs font-semibold transition-colors cursor-pointer"
                         >
@@ -1228,6 +1487,18 @@ Yogaregime Team`;
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-wellness-surface/80 border-b border-wellness-border text-[11px] font-bold text-wellness-dark uppercase tracking-wider">
+                      <th className="py-3 px-3 w-10 text-center">
+                        <input
+                          type="checkbox"
+                          checked={
+                            filteredTransactions.length > 0 &&
+                            filteredTransactions.every((tx) => selectedIds.has(getTxKey(tx)))
+                          }
+                          onChange={() => handleSelectAll(filteredTransactions)}
+                          className="w-4 h-4 rounded border-wellness-border text-wellness-primary focus:ring-wellness-primary/20 accent-wellness-primary cursor-pointer"
+                          title="Select all visible entries"
+                        />
+                      </th>
                       <th className="py-3 px-4">#</th>
                       <th className="py-3 px-4">Date & Time</th>
                       <th className="py-3 px-4">Attendee</th>
@@ -1240,14 +1511,32 @@ Yogaregime Team`;
                   </thead>
                   <tbody className="divide-y divide-wellness-border/60 text-xs">
                     {filteredTransactions.map((tx, idx) => {
+                      const key = getTxKey(tx);
+                      const isSelected = selectedIds.has(key);
+                      const isHidden = hiddenIds.has(key);
                       const attendeeNumber = (tx.whatsappNumber || tx.phone || "").replace(/\D/g, "");
                       const isSendingThis = sendingEmailId === (tx.id || tx.paymentId);
 
                       return (
                         <tr
-                          key={tx.id || tx.paymentId || idx}
-                          className="hover:bg-wellness-cream/40 transition-colors"
+                          key={key || idx}
+                          className={`transition-colors ${
+                            isSelected
+                              ? "bg-wellness-gold/10"
+                              : isHidden
+                              ? "bg-gray-50/70 opacity-75 hover:opacity-100 hover:bg-gray-100/70"
+                              : "hover:bg-wellness-cream/40"
+                          }`}
                         >
+                          <td className="py-3.5 px-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelect(key)}
+                              className="w-4 h-4 rounded border-wellness-border text-wellness-primary focus:ring-wellness-primary/20 accent-wellness-primary cursor-pointer"
+                              title="Select entry"
+                            />
+                          </td>
                           <td className="py-3.5 px-4 font-mono text-wellness-muted text-[11px]">
                             {idx + 1}
                           </td>
@@ -1260,8 +1549,13 @@ Yogaregime Team`;
                             </div>
                           </td>
                           <td className="py-3.5 px-4">
-                            <div className="font-bold text-wellness-dark">
-                              {tx.fullName || "N/A"}
+                            <div className="font-bold text-wellness-dark flex items-center gap-1.5 flex-wrap">
+                              <span>{tx.fullName || "N/A"}</span>
+                              {isHidden && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                  <EyeOff className="w-2.5 h-2.5" /> Hidden
+                                </span>
+                              )}
                             </div>
                             <div className="text-[11px] text-wellness-muted break-all">
                               {tx.email || "N/A"}
@@ -1305,6 +1599,24 @@ Yogaregime Team`;
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
+                              {/* Hide / Unhide Toggle Button */}
+                              <button
+                                type="button"
+                                onClick={() => handleToggleHide(tx)}
+                                className={`p-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+                                  isHidden
+                                    ? "bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300"
+                                    : "bg-wellness-surface hover:bg-wellness-border/60 text-wellness-muted hover:text-wellness-dark border-wellness-border"
+                                }`}
+                                title={isHidden ? "Unhide this entry" : "Hide this entry"}
+                              >
+                                {isHidden ? (
+                                  <Eye className="w-3.5 h-3.5" />
+                                ) : (
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+
                               {/* Send / Resend Email Confirmation Button */}
                               <button
                                 type="button"
@@ -1459,6 +1771,28 @@ Yogaregime Team`;
                     <>
                       <Copy className="w-3.5 h-3.5 text-wellness-muted" />
                       <span>Copy Email Confirmation Text</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleHide(selectedTx)}
+                  className={`w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
+                    hiddenIds.has(getTxKey(selectedTx))
+                      ? "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300"
+                      : "bg-wellness-surface hover:bg-wellness-border/60 text-wellness-dark border-wellness-border"
+                  }`}
+                >
+                  {hiddenIds.has(getTxKey(selectedTx)) ? (
+                    <>
+                      <Eye className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Unhide & Restore Entry</span>
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="w-3.5 h-3.5 text-wellness-muted" />
+                      <span>Hide Entry from Active View</span>
                     </>
                   )}
                 </button>

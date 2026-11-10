@@ -128,6 +128,7 @@ export default function RegistrationForm() {
   // Main Registration Handler (Free Direct Confirmation)
   const handleRegister = async (e) => {
     if (e) e.preventDefault();
+    if (registrationStatus === "submitting" || registrationStatus === "success") return;
 
     // Mark all as touched to display errors if any
     setTouched({

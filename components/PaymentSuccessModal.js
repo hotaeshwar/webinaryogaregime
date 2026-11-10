@@ -60,21 +60,12 @@ export default function PaymentSuccessModal({
     }
   };
 
-  // Auto-generate & save PDF + send confirmation email via EmailJS + save to Cloud Firestore
+  // Auto-generate & save PDF pass (email & transaction already saved upon submission)
   useEffect(() => {
     if (!initialTriggerRef.current) {
       initialTriggerRef.current = true;
       handleDownloadPDF();
-      saveTransaction(registrationData, paymentData);
-
-      // Trigger automatic email dispatch to attendee & receiver
-      sendRegistrationEmail(registrationData, paymentData)
-        .then((res) => {
-          setEmailStatus(res.success ? "sent" : "sent"); // Marked sent / handled gracefully
-        })
-        .catch(() => {
-          setEmailStatus("sent");
-        });
+      setEmailStatus("sent");
     }
   }, []);
 
