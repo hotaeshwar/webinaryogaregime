@@ -16,6 +16,8 @@ import {
   saveTransaction,
   deleteTransaction,
   getRecordTimestamp,
+  deduplicateTransactions,
+  cleanDuplicateTransactions,
 } from "@/lib/transactionService";
 import { sendRegistrationEmail } from "@/lib/emailService";
 import {
@@ -80,6 +82,7 @@ export default function AdminPage() {
   const [dataLoading, setDataLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [creatingTest, setCreatingTest] = useState(false);
+  const [cleaningDuplicates, setCleaningDuplicates] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
   // Filter & Search state
@@ -236,6 +239,35 @@ export default function AdminPage() {
       console.error("Refresh error:", err);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  // Clean Redundant Duplicates from Firebase Firestore
+  const handleCleanDuplicates = async () => {
+    setCleaningDuplicates(true);
+    setStatusMessage(null);
+    try {
+      const res = await cleanDuplicateTransactions();
+      if (res.success) {
+        setStatusMessage({
+          type: "success",
+          text: res.count > 0
+            ? `Successfully removed ${res.count} redundant duplicate ${res.count === 1 ? 'record' : 'records'} from Firebase!`
+            : "No duplicate records found in Firebase. Database is clean!",
+        });
+        const refreshed = await getTransactionsList();
+        setTransactions(refreshed.data || []);
+      } else {
+        setStatusMessage({
+          type: "error",
+          text: `Clean duplicates error: ${res.error || "Failed to clean duplicates"}`,
+        });
+      }
+    } catch (err) {
+      setStatusMessage({ type: "error", text: "Clean error: " + err.message });
+    } finally {
+      setCleaningDuplicates(false);
+      setTimeout(() => setStatusMessage(null), 5000);
     }
   };
 
@@ -535,12 +567,17 @@ Yogaregime Team`;
     }
   };
 
+  // Deduplicated unique transactions guarantee (no double entries)
+  const cleanTransactions = useMemo(() => {
+    return deduplicateTransactions(transactions);
+  }, [transactions]);
+
   // Filtered & Sorted Transactions
   const filteredTransactions = useMemo(() => {
     const todayIST = getISTDateStr(Date.now());
     const sevenDaysAgoMs = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
-    return transactions
+    return cleanTransactions
       .filter((tx) => {
         // Visibility Filter (Active, Hidden, All)
         const key = getTxKey(tx);
@@ -586,24 +623,24 @@ Yogaregime Team`;
         const timeB = getRecordTimestamp(b);
         return sortOrder === "desc" ? timeB - timeA : timeA - timeB;
       });
-  }, [transactions, searchQuery, dateFilter, customDate, sortOrder, visibilityFilter, hiddenIds]);
+  }, [cleanTransactions, searchQuery, dateFilter, customDate, sortOrder, visibilityFilter, hiddenIds]);
 
   // Summary Metrics
   const metrics = useMemo(() => {
-    const totalCount = transactions.length;
-    const hiddenCount = transactions.filter((tx) => hiddenIds.has(getTxKey(tx))).length;
+    const totalCount = cleanTransactions.length;
+    const hiddenCount = cleanTransactions.filter((tx) => hiddenIds.has(getTxKey(tx))).length;
     const activeCount = totalCount - hiddenCount;
-    const totalRevenue = transactions.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
-    const freeCount = transactions.filter((tx) => !tx.amount || Number(tx.amount) === 0).length;
+    const totalRevenue = cleanTransactions.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+    const freeCount = cleanTransactions.filter((tx) => !tx.amount || Number(tx.amount) === 0).length;
 
     const todayIST = getISTDateStr(Date.now());
-    const todayCount = transactions.filter((tx) => {
+    const todayCount = cleanTransactions.filter((tx) => {
       const ts = getRecordTimestamp(tx);
       return getISTDateStr(ts || tx.isoDate || tx.clientTimestamp) === todayIST;
     }).length;
 
     return { totalCount, activeCount, hiddenCount, totalRevenue, freeCount, todayCount };
-  }, [transactions, hiddenIds]);
+  }, [cleanTransactions, hiddenIds]);
 
   // Export to CSV formatted perfectly for Excel
   const handleExportCSV = () => {
@@ -975,6 +1012,22 @@ Yogaregime Team`;
               <span>{creatingTest ? "Saving..." : "Test Record"}</span>
             </button>
 
+            {/* Clean Duplicates Button */}
+            <button
+              onClick={handleCleanDuplicates}
+              disabled={cleaningDuplicates || refreshing}
+              title="Remove any redundant duplicate records from Firebase Firestore"
+              className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-50 hover:bg-emerald-100 text-[11px] sm:text-xs font-bold text-emerald-800 transition-all cursor-pointer shadow-xs"
+            >
+              {cleaningDuplicates ? (
+                <div className="w-3.5 h-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              )}
+              <span className="hidden sm:inline">{cleaningDuplicates ? "Cleaning..." : "Deduplicate"}</span>
+              <span className="sm:hidden">{cleaningDuplicates ? "..." : "Dedup"}</span>
+            </button>
+
             {/* Sync Cloud Button */}
             <button
               onClick={handleRefresh}
@@ -1293,7 +1346,7 @@ Yogaregime Team`;
             </div>
             <span className="text-[11px] sm:text-xs font-medium text-wellness-muted shrink-0">
               Showing <strong className="text-wellness-dark">{filteredTransactions.length}</strong> of{" "}
-              {transactions.length}
+              {cleanTransactions.length}
             </span>
           </div>
 
