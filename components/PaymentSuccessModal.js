@@ -106,7 +106,7 @@ REGISTRATION DETAILS:
 - Status: Confirmed & Registered
 
 Instructor: Harpreet Kaur • Yoga Regime 🧘‍♀️
-Helpline Support: support@yogaregime.com • +91 98769 63204`;
+Helpline Support: yogawithharpreet@gmail.com • +91 98769 63204`;
 
   const handleCopyDetails = () => {
     navigator.clipboard.writeText(confirmationDetailsText);

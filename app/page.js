@@ -122,7 +122,7 @@ export default function Home() {
                   Email Support
                 </h4>
                 <p className="text-xs text-wellness-muted">
-                  Direct coordinator assistance at support@yogaregime.com
+                  Direct coordinator assistance at yogawithharpreet@gmail.com
                 </p>
               </div>
             </div>
@@ -140,19 +140,6 @@ export default function Home() {
               className="h-10 w-auto object-contain"
             />
             <p>© {new Date().getFullYear()} Sampoorna Yoga • Yoga Regime. All rights reserved.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <Mail className="w-3.5 h-3.5 text-wellness-primary" />
-              support@yogaregime.com
-            </span>
-            <span className="text-wellness-border">•</span>
-            <a
-              href="/admin"
-              className="text-wellness-muted/80 hover:text-wellness-primary font-medium transition-colors"
-            >
-              Admin Portal
-            </a>
           </div>
         </div>
       </footer>

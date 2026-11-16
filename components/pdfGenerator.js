@@ -267,7 +267,7 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
       "1. Class joining links and orientation details will be sent to your registered Email.",
       "2. RECORDING AVAILABLE FOR SELF PRACTICE after each live session.",
       "3. Program covers Shatkarma, Asana, Pranayama, Mudra, Bandha, and Meditation.",
-      "4. Instructor: Harpreet Kaur • Yoga Regime (support@yogaregime.com • +91 98769 63204).",
+      "4. Instructor: Harpreet Kaur • Yoga Regime (yogawithharpreet@gmail.com • +91 98769 63204).",
     ];
 
     let gY = noteY + 13;

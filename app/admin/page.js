@@ -521,7 +521,7 @@ PROGRAM DETAILS:
 - Schedule: Monday, Wednesday & Friday
 - Timing: 7:00 AM – 8:00 AM IST
 - Mode: Online classes (Recordings Included)
-- Organizer Support: support@yogaregime.com
+- Organizer Support: yogawithharpreet@gmail.com
 
 ATTENDEE DETAILS:
 - Name: ${tx.fullName || "N/A"}
