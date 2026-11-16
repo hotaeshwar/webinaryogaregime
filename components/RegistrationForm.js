@@ -165,7 +165,7 @@ export default function RegistrationForm() {
         orderId: orderId,
         razorpay_payment_id: regId,
         razorpay_order_id: orderId,
-        amount: 0,
+        amount: 1500,
         status: "CONFIRMED",
       };
 
@@ -245,7 +245,7 @@ export default function RegistrationForm() {
       default:
         return (
           <>
-            <span>Register Now</span>
+            <span>Join Sampoorna Yoga • ₹1,500</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </>
         );
@@ -281,13 +281,13 @@ export default function RegistrationForm() {
         <div className="mb-6 space-y-1 relative">
           <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-wellness-primary bg-wellness-emeraldBg px-3 py-1 rounded-full border border-wellness-primary/15 mb-2">
             <Lock className="w-3.5 h-3.5" />
-            Instant Seat Confirmation
+            1-Month Online Yoga Program • ₹1,500
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-wellness-dark font-serif">
             Reserve Your Spot
           </h2>
           <p className="text-sm text-wellness-muted">
-            Enter your details below to join the live online workshop.
+            Enter your details below to enroll in Sampoorna Yoga.
           </p>
         </div>
 
@@ -311,16 +311,20 @@ export default function RegistrationForm() {
 
             <div className="bg-wellness-surface/80 rounded-2xl p-4 border border-wellness-border text-left text-xs space-y-2">
               <div className="flex justify-between items-center py-1 border-b border-wellness-border/50">
-                <span className="text-wellness-muted font-medium">Workshop:</span>
-                <span className="font-semibold text-wellness-dark">The Art of Breathing</span>
+                <span className="text-wellness-muted font-medium">Program:</span>
+                <span className="font-semibold text-wellness-dark">Sampoorna Yoga</span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-wellness-border/50">
-                <span className="text-wellness-muted font-medium">Date & Time:</span>
-                <span className="font-semibold text-wellness-dark">Sat, 14th Nov • 07:00 P.M. IST</span>
+                <span className="text-wellness-muted font-medium">Schedule:</span>
+                <span className="font-semibold text-wellness-dark">Mon, Wed &amp; Fri • 07:00 AM – 08:00 AM IST</span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-wellness-border/50">
-                <span className="text-wellness-muted font-medium">Platform:</span>
-                <span className="font-semibold text-wellness-dark">Online on Zoom (60 Mins)</span>
+                <span className="text-wellness-muted font-medium">Platform &amp; Access:</span>
+                <span className="font-semibold text-wellness-dark">Online Classes (Recordings Included)</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-wellness-border/50">
+                <span className="text-wellness-muted font-medium">Program Fee:</span>
+                <span className="font-bold text-wellness-primary">₹1,500 / Month</span>
               </div>
               <div className="flex justify-between items-center py-1 text-[11px]">
                 <span className="text-wellness-muted font-medium">Registration ID:</span>
@@ -521,7 +525,7 @@ export default function RegistrationForm() {
                   className="mt-1 w-4.5 h-4.5 rounded border-wellness-border text-wellness-primary focus:ring-wellness-primary/20 accent-wellness-primary cursor-pointer shrink-0"
                 />
                 <span className="text-xs text-wellness-muted leading-relaxed">
-                  I understand this is an interactive online workshop on Saturday, 14th Nov (07:00 P.M.) on Zoom (60 Minutes) and agree to reserve my seat.
+                  I understand this is a 1-month online yoga program (Mon, Wed &amp; Fri • 7:00 AM – 8:00 AM IST) with self-practice recordings included, and agree to register for ₹1,500.
                 </span>
               </label>
               {touched.termsAccepted && formErrors.termsAccepted && (
@@ -550,11 +554,11 @@ export default function RegistrationForm() {
               <div className="space-y-1.5 text-center">
                 <div className="flex items-center justify-center gap-1.5 text-xs text-wellness-muted font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5 text-wellness-primary" />
-                  <span>Instant confirmation & workshop pass delivered to your registered email.</span>
+                  <span>Program Fee: ₹1,500 • Full 1-month access &amp; recordings included.</span>
                 </div>
                 <div className="flex items-center justify-center gap-1 text-[11px] text-wellness-muted/80">
                   <ShieldCheck className="w-3.5 h-3.5 text-wellness-primary" />
-                  <span>Free registration • Live interactive session on Saturday</span>
+                  <span>Instant confirmation &amp; pass delivered to your registered email</span>
                 </div>
               </div>
             </div>

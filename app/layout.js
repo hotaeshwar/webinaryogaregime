@@ -16,22 +16,26 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata = {
-  title: "The Art of Breathing Workshop Registration",
+  title: "Sampoorna Yoga – A Complete Yogic Journey | Yoga Regime",
   description:
-    "Register for The Art of Breathing Workshop and secure your workshop seat online.",
+    "Join our 1-month online Sampoorna Yoga Program with Harpreet Kaur. Explore Shatkarma, Asana, Pranayama, Mudra, Bandha & Meditation with recording access for self-practice.",
   keywords: [
-    "The Art of Breathing",
+    "Sampoorna Yoga",
+    "Yoga Regime",
+    "Harpreet Kaur",
+    "Online Yoga Program",
+    "Shatkarma",
+    "Asana",
     "Pranayama",
+    "Mudra",
+    "Bandha",
+    "Meditation",
+    "Yogic Cleansing",
     "Breathwork",
-    "Yoga Workshop",
-    "Diaphragmatic Breathing",
-    "Nadi Shodhana",
-    "Mindfulness",
-    "Stress Relief",
   ],
   openGraph: {
-    title: "The Art of Breathing Workshop",
-    description: "Online on Zoom (60 Minutes) Masterclass on Saturday, 14th Nov at 07:00 P.M.",
+    title: "Sampoorna Yoga – A Complete Yogic Journey",
+    description: "1-Month Online Yoga Program • Mon, Wed & Fri (7:00 AM – 8:00 AM IST) • Yoga Regime",
     type: "website",
   },
 };

@@ -84,26 +84,28 @@ export default function PaymentSuccessModal({
   const regId = paymentData?.registrationId || paymentData?.paymentId || paymentData?.razorpay_payment_id || "N/A";
   const orderRef = paymentData?.orderId || paymentData?.razorpay_order_id || "N/A";
 
-  const confirmationDetailsText = `WORKSHOP REGISTRATION CONFIRMATION
-The Art of Breathing Workshop
+  const confirmationDetailsText = `SAMPOORNA YOGA PROGRAM REGISTRATION
+Sampoorna Yoga – A Complete Yogic Journey
 
 ATTENDEE DETAILS:
 - Name: ${registrationData.fullName}
 - Email: ${registrationData.email}
 - Contact: ${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}
 
-WORKSHOP DETAILS:
-- Date: Saturday, 14th Nov
-- Time: 07:00 P.M. IST
-- Duration: 60 Minutes
-- Mode: Online on Zoom
-- Access Pass: Free Admission
+PROGRAM DETAILS:
+- Program: Sampoorna Yoga – A Complete Yogic Journey
+- Duration: 1 Month
+- Schedule: Monday, Wednesday & Friday
+- Timing: 7:00 AM – 8:00 AM IST
+- Mode: Online classes (Recordings Included)
+- Program Fee: ₹1,500
 
 REGISTRATION DETAILS:
 - Registration ID: ${regId}
 - Pass Reference: ${orderRef}
 - Status: Confirmed & Registered
 
+Instructor: Harpreet Kaur • Yoga Regime 🧘‍♀️
 Helpline Support: support@yogaregime.com • +91 98769 63204`;
 
   const handleCopyDetails = () => {
@@ -136,7 +138,7 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
             Registration Confirmed!
           </h2>
           <p className="text-xs sm:text-sm text-gray-200 mt-1">
-            The Art of Breathing Workshop • Sat, 14th Nov (07:00 P.M. • Zoom)
+            Sampoorna Yoga – A Complete Yogic Journey (Mon, Wed, Fri • 7:00 AM – 8:00 AM IST)
           </p>
 
           {/* 10-Second Timer Countdown Badge */}
@@ -192,9 +194,9 @@ Helpline Support: support@yogaregime.com • +91 98769 63204`;
               </span>
             </div>
             <div className="flex justify-between items-center py-0.5 border-b border-wellness-border/50">
-              <span className="text-wellness-muted font-medium">Access Pass:</span>
-              <span className="text-emerald-700 font-extrabold text-sm sm:text-base font-mono">
-                Free Pass
+              <span className="text-wellness-muted font-medium">Program Fee:</span>
+              <span className="text-wellness-primary font-extrabold text-sm sm:text-base font-mono">
+                ₹1,500
               </span>
             </div>
             <div className="flex justify-between items-start py-0.5 border-b border-wellness-border/50 text-[11px] sm:text-xs">

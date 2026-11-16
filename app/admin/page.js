@@ -505,22 +505,22 @@ export default function AdminPage() {
   // Helper to generate clean plain text Event & Transaction confirmation message
   const getAdminEmailMessage = (tx) => {
     if (!tx) return "";
-    const dateFormatted = tx.dateString || "Saturday, 14th Nov";
+    const dateFormatted = tx.dateString || "1 Month (Mon, Wed, Fri)";
     const timeFormatted = tx.timeString ? ` at ${tx.timeString}` : "";
+    const amountVal = Number(tx.amount) > 0 ? Number(tx.amount) : 1500;
     
-    return `WORKSHOP REGISTRATION CONFIRMATION AND ADMISSION PASS
-Yogaregime Live Masterclass
+    return `SAMPOORNA YOGA PROGRAM CONFIRMATION
+Sampoorna Yoga – A Complete Yogic Journey
 
 Hello ${tx.fullName || "Attendee"},
-Your registration for the upcoming live online masterclass is confirmed. Below are your event admission and transaction details:
+Your registration for the upcoming Sampoorna Yoga Program is confirmed. Below are your enrollment details:
 
-EVENT AND WORKSHOP DETAILS:
-- Workshop: The Art of Breathing
-- Topic: The Art of Breathing Masterclass
-- Date: Saturday, 14th Nov
-- Time: 07:00 P.M. IST
-- Duration: 60 Minutes
-- Mode: Online on Zoom
+PROGRAM DETAILS:
+- Program: Sampoorna Yoga – A Complete Yogic Journey
+- Duration: 1 Month
+- Schedule: Monday, Wednesday & Friday
+- Timing: 7:00 AM – 8:00 AM IST
+- Mode: Online classes (Recordings Included)
 - Organizer Support: support@yogaregime.com
 
 ATTENDEE DETAILS:
@@ -529,20 +529,19 @@ ATTENDEE DETAILS:
 - Contact: ${tx.countryCode || "+91"} ${tx.whatsappNumber || tx.phone || "N/A"}
 
 REGISTRATION AND ACCESS DETAILS:
-- Access Pass: ${Number(tx.amount) > 0 ? `Rs. ${tx.amount} INR` : "Free Pass"}
+- Program Fee: Rs. ${amountVal} INR
 - Status: Confirmed & Registered (${tx.status || "CONFIRMED"})
 - Registration ID: ${tx.registrationId || tx.paymentId || "N/A"}
 - Pass Reference: ${tx.orderId || "N/A"}
 - Registration Date: ${dateFormatted}${timeFormatted}
 
-SESSION GUIDELINES:
-1. Practice on an empty stomach or at least 2 hours after a light meal.
-2. Wear comfortable yoga attire and keep a yoga mat ready.
-3. Join 5-10 minutes prior to 07:00 P.M. IST.
+PROGRAM GUIDELINES:
+1. Online class joining links will be sent to your registered email prior to the classes.
+2. Recordings are available for self-practice after each live session.
+3. Wear comfortable yoga attire and keep your yoga mat ready.
 
-The live meeting joining link will be shared to your registered email prior to the session start.
-
-Yogaregime Team`;
+Harpreet Kaur
+Yoga Regime 🧘‍♀️`;
   };
 
   // Copy helper
@@ -630,8 +629,8 @@ Yogaregime Team`;
     const totalCount = cleanTransactions.length;
     const hiddenCount = cleanTransactions.filter((tx) => hiddenIds.has(getTxKey(tx))).length;
     const activeCount = totalCount - hiddenCount;
-    const totalRevenue = cleanTransactions.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
-    const freeCount = cleanTransactions.filter((tx) => !tx.amount || Number(tx.amount) === 0).length;
+    const totalRevenue = cleanTransactions.reduce((sum, tx) => sum + (Number(tx.amount) > 0 ? Number(tx.amount) : 1500), 0);
+    const freeCount = cleanTransactions.filter((tx) => tx.amount !== undefined && Number(tx.amount) === 0).length;
 
     const todayIST = getISTDateStr(Date.now());
     const todayCount = cleanTransactions.filter((tx) => {
@@ -702,8 +701,8 @@ Yogaregime Team`;
         escapeCSV(tx.email || "N/A"),
         formatAsTextCell(tx.countryCode || "+91"),
         formatAsTextCell(tx.whatsappNumber || ""),
-        escapeCSV(tx.workshop || "The Art of Breathing Workshop"),
-        Number(tx.amount) > 0 ? Number(tx.amount) : "Free Pass",
+        escapeCSV(tx.workshop || "Sampoorna Yoga – A Complete Yogic Journey"),
+        Number(tx.amount) > 0 ? Number(tx.amount) : 1500,
         formatAsTextCell(tx.paymentId || ""),
         formatAsTextCell(tx.orderId || ""),
         escapeCSV(tx.status || "CONFIRMED"),
@@ -759,7 +758,7 @@ Yogaregime Team`;
             </div>
             <h1 className="text-2xl font-bold font-serif">Admin Portal</h1>
             <p className="text-xs text-gray-200 mt-1">
-              The Art of Breathing Workshop Dashboard
+              Sampoorna Yoga Dashboard • Yoga Regime
             </p>
             <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/40 text-[10px] text-emerald-200 border border-emerald-400/30">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -1137,10 +1136,10 @@ Yogaregime Team`;
                 Pass Type / Revenue
               </p>
               <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-wellness-primary mt-0.5 sm:mt-1 font-mono">
-                {metrics.totalRevenue > 0 ? `₹${metrics.totalRevenue}` : "FREE"}
+                {`₹${metrics.totalRevenue.toLocaleString("en-IN")}`}
               </h3>
               <p className="text-[10px] sm:text-[11px] text-emerald-600 font-semibold mt-0.5 sm:mt-1 truncate">
-                {metrics.freeCount > 0 ? `${metrics.freeCount} Free Passes Registered` : "Complimentary Access"}
+                ₹1,500 / Month Standard Program Fee
               </p>
             </div>
             <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700 shrink-0">
@@ -1170,14 +1169,14 @@ Yogaregime Team`;
           <div className="bg-gradient-to-br from-wellness-primaryDark to-wellness-primary p-3.5 sm:p-5 rounded-2xl text-white shadow-xs flex items-center justify-between">
             <div className="min-w-0">
               <p className="text-[10px] sm:text-xs font-bold text-wellness-goldLight uppercase tracking-wider truncate">
-                Masterclass
+                Sampoorna Yoga
               </p>
               <h3 className="text-sm sm:text-base lg:text-lg font-bold font-serif mt-0.5 sm:mt-1 truncate">
-                Sat, 14th Nov
+                Mon, Wed &amp; Fri
               </h3>
               <p className="text-[10px] sm:text-[11px] text-gray-200 mt-0.5 flex items-center gap-1 truncate">
                 <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-wellness-goldLight shrink-0" />
-                <span>07:00 P.M. IST</span>
+                <span>07:00 AM – 08:00 AM IST</span>
               </p>
             </div>
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-wellness-goldLight shrink-0">
@@ -1456,7 +1455,7 @@ Yogaregime Team`;
                             Amount Paid
                           </span>
                           <span className="font-extrabold text-wellness-primary font-mono text-sm">
-                            {Number(tx.amount) > 0 ? `₹${tx.amount}` : "Free Pass"}
+                            ₹{Number(tx.amount) > 0 ? tx.amount : 1500}
                           </span>
                           <span className="text-[10px] text-emerald-700 block font-medium">
                             {tx.countryCode || "+91"} {attendeeNumber}
@@ -1623,7 +1622,7 @@ Yogaregime Team`;
                           </td>
                           <td className="py-3.5 px-4">
                             <span className="font-extrabold text-emerald-700 font-mono text-xs">
-                              {Number(tx.amount) > 0 ? `₹${tx.amount}` : "Free Pass"}
+                              ₹{Number(tx.amount) > 0 ? tx.amount : 1500}
                             </span>
                           </td>
                           <td className="py-3.5 px-4">
@@ -1759,7 +1758,7 @@ Yogaregime Team`;
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">
                   <span className="text-wellness-muted font-medium">Access:</span>
                   <span className="text-emerald-700 font-extrabold font-mono text-xs">
-                    {Number(selectedTx.amount) > 0 ? `₹${selectedTx.amount}` : "Free Pass"}
+                    ₹{Number(selectedTx.amount) > 0 ? selectedTx.amount : 1500}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-wellness-border/50">

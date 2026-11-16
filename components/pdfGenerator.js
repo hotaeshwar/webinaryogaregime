@@ -49,12 +49,12 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
       phone: `${registrationData.countryCode || "+91"} ${registrationData.whatsappNumber || ""}`.trim(),
       paymentId: regId,
       orderId: orderRef,
-      amountPaid: "Free Pass",
-      workshop: "The Art of Breathing Workshop",
-      date: "Saturday, 14th Nov",
-      time: "07:00 P.M. IST",
-      duration: "60 Minutes",
-      mode: "Online on Zoom",
+      amountPaid: "₹1,500",
+      workshop: "Sampoorna Yoga – A Complete Yogic Journey",
+      date: "1 Month (Mon, Wed, Fri)",
+      time: "07:00 AM – 08:00 AM IST",
+      duration: "1 Month",
+      mode: "Online classes (Recordings Included)",
       savedAt: new Date().toISOString(),
       status: "CONFIRMED & REGISTERED",
     };
@@ -115,16 +115,16 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.text("THE ART OF BREATHING", 52, 20);
+    doc.text("SAMPOORNA YOGA", 52, 20);
 
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(243, 230, 186); // Light Gold
-    doc.text("Live Online Masterclass • Official Booking Pass", 52, 27);
+    doc.text("A Complete Yogic Journey • Official Admission Pass", 52, 27);
 
     doc.setFontSize(9);
     doc.setTextColor(200, 220, 210);
-    doc.text("Saturday, 14th Nov • 07:00 P.M. IST (60 Minutes • Zoom)", 52, 34);
+    doc.text("1 Month • Mon, Wed & Fri • 07:00 AM – 08:00 AM IST", 52, 34);
 
     // Verified Stamp / Badge in top right
     doc.setFillColor(34, 139, 34);
@@ -196,19 +196,19 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
 
     // Column Left: Session info
     doc.setFont("helvetica", "bold");
-    doc.text("Workshop:", cardX + 8, cardY + 60);
+    doc.text("Program:", cardX + 8, cardY + 60);
     doc.setFont("helvetica", "normal");
-    doc.text("The Art of Breathing Masterclass", cardX + 45, cardY + 60);
+    doc.text("Sampoorna Yoga – A Complete Yogic Journey", cardX + 45, cardY + 60);
 
     doc.setFont("helvetica", "bold");
-    doc.text("Date & Time:", cardX + 8, cardY + 68);
+    doc.text("Schedule:", cardX + 8, cardY + 68);
     doc.setFont("helvetica", "normal");
-    doc.text("Saturday, 14th Nov • 07:00 P.M. IST", cardX + 45, cardY + 68);
+    doc.text("1 Month • Mon, Wed & Fri • 07:00 AM – 08:00 AM IST", cardX + 45, cardY + 68);
 
     doc.setFont("helvetica", "bold");
     doc.text("Format:", cardX + 8, cardY + 76);
     doc.setFont("helvetica", "normal");
-    doc.text("Online on Zoom (60 Minutes)", cardX + 45, cardY + 76);
+    doc.text("Online Classes (Recordings Available)", cardX + 45, cardY + 76);
 
     // Column Right / Payment Info Box
     const payBoxX = cardX + 8;
@@ -222,10 +222,10 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
 
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...primaryDark);
-    doc.text("Access Pass:", payBoxX + 6, payBoxY + 10);
+    doc.text("Program Fee:", payBoxX + 6, payBoxY + 10);
     doc.setFontSize(12);
-    doc.setTextColor(...goldAccent);
-    doc.text("FREE PASS", payBoxX + 50, payBoxY + 10);
+    doc.setTextColor(...primaryDark);
+    doc.text("Rs. 1,500 INR", payBoxX + 50, payBoxY + 10);
 
     doc.setFontSize(9.5);
     doc.setTextColor(...textDark);
@@ -257,17 +257,17 @@ export async function generateAndSaveWorkshopPDF(registrationData, paymentData =
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8.5);
     doc.setFont("helvetica", "bold");
-    doc.text("IMPORTANT WORKSHOP GUIDELINES", cardX + 6, noteY + 4.5);
+    doc.text("IMPORTANT PROGRAM GUIDELINES", cardX + 6, noteY + 4.5);
 
     doc.setTextColor(...textDark);
     doc.setFontSize(8.5);
     doc.setFont("helvetica", "normal");
 
     const guidelines = [
-      "1. The live interactive session joining link will be sent to your registered Email prior to the masterclass.",
-      "2. Please join with an empty stomach (or at least 2 hours after a light meal) for optimal breathing practice.",
-      "3. Wear comfortable yoga attire and keep a yoga mat, water, and an open space ready.",
-      "4. Support & Helpline: support@yogaregime.com for any questions or coordination.",
+      "1. Class joining links and orientation details will be sent to your registered Email.",
+      "2. RECORDING AVAILABLE FOR SELF PRACTICE after each live session.",
+      "3. Program covers Shatkarma, Asana, Pranayama, Mudra, Bandha, and Meditation.",
+      "4. Instructor: Harpreet Kaur • Yoga Regime (support@yogaregime.com • +91 98769 63204).",
     ];
 
     let gY = noteY + 13;

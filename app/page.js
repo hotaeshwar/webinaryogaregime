@@ -18,15 +18,15 @@ export default function Home() {
           <div className="flex items-center gap-3.5">
             <img
               src="/logo1.png"
-              alt="The Art of Breathing Workshop Logo"
+              alt="Sampoorna Yoga Logo - Yoga Regime"
               className="h-14 sm:h-16 w-auto max-w-[180px] object-contain drop-shadow-sm transition-transform hover:scale-105"
             />
             <div>
               <span className="text-base sm:text-lg font-bold tracking-tight text-wellness-dark block leading-tight font-serif">
-                Prana & Strength
+                Yoga Regime
               </span>
               <span className="text-xs text-wellness-muted font-medium">
-                Yoga Masterclass Series
+                Sampoorna Yoga Program
               </span>
             </div>
           </div>
@@ -34,7 +34,7 @@ export default function Home() {
           <div className="flex items-center gap-2 sm:gap-4">
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-wellness-cream border border-wellness-border text-xs font-semibold text-wellness-primary">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              <span>Live Masterclass</span>
+              <span>1-Month Live Online Program</span>
             </div>
             <a
               href="https://wa.me/919876963204"
@@ -55,16 +55,16 @@ export default function Home() {
         <div className="block lg:hidden mb-4 text-center space-y-1.5">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-wellness-gold/15 text-wellness-goldDark border border-wellness-gold/30">
             <Sparkles className="w-3 h-3 text-wellness-gold" />
-            Live Online Masterclass • Free Registration
+            1-Month Online Yoga Program • ₹1,500
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-wellness-dark tracking-tight font-serif leading-tight">
-            The Art of{" "}
+            Sampoorna{" "}
             <span className="text-wellness-primary italic font-serif">
-              Breathing
+              Yoga
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-wellness-muted font-medium">
-            The Art of Breathing Workshop • Saturday, 14th Nov (07:00 P.M. IST)
+            A Complete Yogic Journey • Mon, Wed, Fri (7:00 AM – 8:00 AM IST)
           </p>
         </div>
 
@@ -91,10 +91,10 @@ export default function Home() {
               </div>
               <div>
                 <h4 className="text-xs font-bold text-wellness-dark uppercase tracking-wider">
-                  Live Interactive Q&A
+                  Self-Practice Recordings
                 </h4>
                 <p className="text-xs text-wellness-muted">
-                  Direct master guidance for your postures & locks
+                  Full recording available after each live session
                 </p>
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function Home() {
               alt="Logo"
               className="h-10 w-auto object-contain"
             />
-            <p>© {new Date().getFullYear()} The Art of Breathing Workshop. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Sampoorna Yoga • Yoga Regime. All rights reserved.</p>
           </div>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
